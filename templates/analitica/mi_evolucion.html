@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Evolución Académica{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mi Evolución y Progreso Académico</h1>
+    <p class="page-subtitle">Estudiante: <strong>{{ estudiante.nombre_completo }}</strong> (<code>{{ estudiante.codigo }}</code>) - {{ estudiante.carrera.nombre }}</p>
+  </div>
+</div>
+
+<div class="table-container p-4 mb-4">
+  <div id="plotEvolucion"></div>
+</div>
+
+<div class="card p-3 bg-light border">
+  <div class="fw-bold mb-1" style="color:#1e3a8a;">Información de Progreso:</div>
+  <p class="small text-secondary mb-0">
+    Este gráfico traza la trayectoria de su promedio ponderado a través de los periodos semestrales cursados. La línea punteada verde representa el umbral mínimo institucional de aprobación (13.00).
+  </p>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const plotData = {{ grafico_evolucion_json|safe|default:'null' }};
+  if(plotData) {
+    Plotly.newPlot('plotEvolucion', plotData.data, plotData.layout, {responsive: true, displayModeBar: false});
+  } else {
+    document.getElementById('plotEvolucion').innerHTML = '<div class="text-muted text-center py-5">Se requiere haber concluido al menos un periodo académico para visualizar su evolución histórica.</div>';
+  }
+});
+</script>
+{% endblock %}
+{% endblock %}

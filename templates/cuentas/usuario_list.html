@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Usuarios{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Gestión de Cuentas de Usuario</h1>
+    <p class="page-subtitle">Administración de credenciales, roles y permisos institucionales.</p>
+  </div>
+  <a href="{% url 'cuentas:usuario_create' %}" class="btn btn-primary">
+    + Nuevo Usuario
+  </a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por usuario, nombre o DNI..." class="form-control" style="width: 280px;">
+      <select name="rol" class="form-select" style="width: 170px;">
+        <option value="">Todos los Roles</option>
+        <option value="ADMIN" {% if rol_filtro == 'ADMIN' %}selected{% endif %}>Administrador</option>
+        <option value="DOCENTE" {% if rol_filtro == 'DOCENTE' %}selected{% endif %}>Docente</option>
+        <option value="ESTUDIANTE" {% if rol_filtro == 'ESTUDIANTE' %}selected{% endif %}>Estudiante</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      {% if query or rol_filtro %}
+        <a href="{% url 'cuentas:usuario_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Nombre Completo</th>
+          <th>Correo Electrónico</th>
+          <th>DNI</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr>
+          <td class="font-mono-tabular fw-semibold">{{ u.username }}</td>
+          <td>{{ u.get_full_name|default:"-" }}</td>
+          <td>{{ u.email }}</td>
+          <td class="font-mono-tabular">{{ u.dni|default:"-" }}</td>
+          <td>
+            <span class="user-badge-role {% if u.rol == 'ADMIN' %}role-admin{% elif u.rol == 'DOCENTE' %}role-docente{% else %}role-estudiante{% endif %}">
+              {{ u.get_rol_display }}
+            </span>
+          </td>
+          <td>
+            <span class="badge {% if u.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+              {% if u.is_active %}Activo{% else %}Inactivo{% endif %}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'cuentas:usuario_update' u.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No se encontraron usuarios con los criterios indicados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

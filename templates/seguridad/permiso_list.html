@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Permisos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Permisos del Sistema</h1>
+    <p class="page-subtitle">Gestión de permisos de acceso.</p>
+  </div>
+  <a href="{% url 'seguridad:permiso_create' %}" class="btn btn-primary">+ Nuevo Permiso</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por código o nombre..." class="form-control" style="width: 280px;">
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query %}
+        <a href="{% url 'seguridad:permiso_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Roles Asignados</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in permisos %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">{{ p.codigo }}</td>
+          <td class="fw-semibold">{{ p.nombre }}</td>
+          <td>{{ p.descripcion|default:"-" }}</td>
+          <td class="font-mono-tabular text-center">{{ p.total_roles }}</td>
+          <td>
+            <a href="{% url 'seguridad:permiso_update' p.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted p-4">No se registran permisos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

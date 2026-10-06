@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Ficha de Matrícula {{ matricula.codigo }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Ficha Oficial de Matrícula: {{ matricula.codigo }}</h1>
+    <p class="page-subtitle">Comprobante oficial de asignaturas inscritas y estado académico.</p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if ES_ADMIN and matricula.es_valida %}
+      <a href="{% url 'matriculas:matricula_anular' matricula.pk %}" class="btn btn-danger btn-sm">
+        Anular Matrícula
+      </a>
+    {% endif %}
+    <a href="{% url 'matriculas:matricula_list' %}" class="btn btn-secondary btn-sm">Volver</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="form-panel h-100">
+      <div class="form-group-title">Datos de la Matrícula</div>
+      <div class="mb-3">
+        <label class="form-label">Estudiante</label>
+        <div class="fw-bold">{{ matricula.estudiante.nombre_completo }}</div>
+        <div class="text-muted small font-monospace">Código: {{ matricula.estudiante.codigo }} | DNI: {{ matricula.estudiante.dni }}</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Programa Académico</label>
+        <div>{{ matricula.estudiante.carrera.nombre }}</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Periodo Académico</label>
+        <div class="font-monospace fw-bold">{{ matricula.periodo.codigo }}</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Total de Créditos</label>
+        <div class="fs-5 fw-bold font-monospace text-primary">{{ matricula.total_creditos }} créditos</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Estado</label>
+        <div>
+          <span class="status-badge {% if matricula.es_valida %}badge-aprobado{% else %}badge-desaprobado{% endif %}">
+            {{ matricula.get_estado_display }}
+          </span>
+        </div>
+      </div>
+      {% if not matricula.es_valida %}
+      <div class="p-3 bg-light rounded border border-danger text-danger small">
+        <strong>Motivo de Anulación:</strong> {{ matricula.motivo_anulacion }}
+        <div class="text-muted mt-1">Anulado el {{ matricula.fecha_anulacion|date:"d/m/Y H:i" }} por {{ matricula.usuario_anulacion.username }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="table-container">
+      <div class="table-toolbar">
+        <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Asignaturas y Secciones Inscritas</span>
+      </div>
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Asignatura</th>
+              <th>Ciclo</th>
+              <th>Créditos</th>
+              <th>Sección</th>
+              <th>Docente</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for det in detalles %}
+            <tr>
+              <td class="font-mono-tabular fw-semibold">{{ det.seccion.curso.codigo }}</td>
+              <td>{{ det.seccion.curso.nombre }}</td>
+              <td class="font-mono-tabular text-center">Ciclo {{ det.seccion.curso.ciclo }}</td>
+              <td class="font-mono-tabular text-center fw-bold">{{ det.seccion.curso.creditos }} cr.</td>
+              <td><span class="badge bg-light text-dark border">Sec {{ det.seccion.codigo_seccion }}</span></td>
+              <td>{{ det.seccion.docente.nombre_completo }}</td>
+              <td>
+                <span class="badge {% if det.estado == 'INSCRITO' %}bg-success{% else %}bg-secondary{% endif %}">
+                  {{ det.get_estado_display }}
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted p-4">No hay asignaturas asociadas.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

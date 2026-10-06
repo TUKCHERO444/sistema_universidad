@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Cursos Matriculados{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mis Asignaturas Inscritas</h1>
+    <p class="page-subtitle">Periodo Académico: {{ periodo_actual.codigo|default:"Actual" }}</p>
+  </div>
+</div>
+
+<div class="table-container">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Asignatura</th>
+          <th>Ciclo</th>
+          <th>Créditos</th>
+          <th>Sección</th>
+          <th>Docente</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for det in cursos_detalles %}
+        <tr>
+          <td class="font-mono-tabular fw-bold">{{ det.seccion.curso.codigo }}</td>
+          <td>{{ det.seccion.curso.nombre }}</td>
+          <td class="font-mono-tabular text-center">Ciclo {{ det.seccion.curso.ciclo }}</td>
+          <td class="font-mono-tabular text-center">{{ det.seccion.curso.creditos }} cr.</td>
+          <td><span class="badge bg-light text-dark border">Sec {{ det.seccion.codigo_seccion }}</span></td>
+          <td>{{ det.seccion.docente.nombre_completo }}</td>
+          <td>
+            <span class="badge bg-success">Inscrito Regular</span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No registra asignaturas matriculadas en el periodo actual.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Anular Matrícula {{ matricula.codigo }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title text-danger">Anulación de Matrícula: {{ matricula.codigo }}</h1>
+    <p class="page-subtitle">Esta acción liberará inmediatamente las vacantes de todas las secciones inscritas.</p>
+  </div>
+  <a href="{% url 'matriculas:matricula_detail' matricula.pk %}" class="btn btn-secondary">Cancelar y Volver</a>
+</div>
+
+<div class="row">
+  <div class="col-md-8 col-lg-6">
+    <div class="form-panel border-danger">
+      <div class="alert alert-danger mb-4">
+        <strong>Atención:</strong> Está a punto de anular la matrícula de <strong>{{ matricula.estudiante.nombre_completo }}</strong> para el periodo <strong>{{ matricula.periodo.codigo }}</strong>. Se conservará el registro histórico con fines de auditoría.
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label" for="id_motivo">Motivo Formal de la Anulación</label>
+          <textarea name="motivo_anulacion" id="id_motivo" class="form-control" rows="4" required placeholder="Especifique el motivo (ej. Retiro voluntario, cambio de carrera, solicitud del alumno)..."></textarea>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <a href="{% url 'matriculas:matricula_detail' matricula.pk %}" class="btn btn-secondary">Cancelar</a>
+          <button type="submit" class="btn btn-danger">Confirmar Anulación</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

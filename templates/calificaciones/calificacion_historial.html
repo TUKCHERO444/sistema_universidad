@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Calificación{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Historial de Modificaciones de Calificación</h1>
+    <p class="page-subtitle">
+      Estudiante: <strong>{{ calificacion.detalle_matricula.matricula.estudiante.nombre_completo }}</strong> ({{ calificacion.detalle_matricula.matricula.estudiante.codigo }}) | 
+      Curso: <strong>{{ calificacion.detalle_matricula.seccion.curso.nombre }}</strong> ({{ calificacion.detalle_matricula.seccion.periodo.codigo }})
+    </p>
+  </div>
+  <a href="{% url 'calificaciones:calificacion_list' %}" class="btn btn-secondary">Volver</a>
+</div>
+
+<div class="table-container">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Fecha y Hora</th>
+          <th>Evaluación</th>
+          <th>Nota Anterior</th>
+          <th>Nota Nueva</th>
+          <th>Motivo del Cambio</th>
+          <th>Usuario Responsable</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in historial %}
+        <tr>
+          <td class="font-mono-tabular">{{ h.fecha_cambio|date:"d/m/Y H:i:s" }}</td>
+          <td><span class="badge bg-light text-dark border">{{ h.evaluacion }}</span></td>
+          <td class="font-mono-tabular text-center">{{ h.nota_anterior|default:"(Vacío)" }}</td>
+          <td class="font-mono-tabular text-center fw-bold text-primary">{{ h.nota_nueva }}</td>
+          <td>{{ h.motivo_cambio|default:"-" }}</td>
+          <td>{{ h.modificado_por.username|default:"Sistema" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran cambios posteriores para esta calificación.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

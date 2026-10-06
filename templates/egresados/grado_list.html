@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Grados Académicos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Grados Académicos</h1>
+    <p class="page-subtitle">Gestión de grados académicos otorgados.</p>
+  </div>
+  <a href="{% url 'egresados:grado_create' %}" class="btn btn-primary">+ Registrar Grado</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre..." class="form-control" style="width: 280px;">
+      <select name="tipo" class="form-select" style="width: 180px;">
+        <option value="">Todos los tipos</option>
+        <option value="BACHILLER" {% if tipo_filtro == "BACHILLER" %}selected{% endif %}>Bachiller</option>
+        <option value="MAESTRO" {% if tipo_filtro == "MAESTRO" %}selected{% endif %}>Maestro</option>
+        <option value="DOCTOR" {% if tipo_filtro == "DOCTOR" %}selected{% endif %}>Doctor</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query or tipo_filtro %}
+        <a href="{% url 'egresados:grado_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Tipo</th>
+          <th>Nombre del Grado</th>
+          <th>Fecha de Otorgamiento</th>
+          <th>N° Registro</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for g in grados %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ g.egreso.estudiante.nombre_completo }}</div>
+            <div class="text-muted small">{{ g.egreso.estudiante.codigo }}</div>
+          </td>
+          <td>
+            <span class="badge bg-primary">{{ g.get_tipo_display }}</span>
+          </td>
+          <td>{{ g.nombre }}</td>
+          <td class="font-mono-tabular">{{ g.fecha_otorgamiento|default:"-" }}</td>
+          <td class="font-mono-tabular">{{ g.numero_registro|default:"-" }}</td>
+          <td>
+            <a href="{% url 'egresados:grado_update' g.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran grados académicos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

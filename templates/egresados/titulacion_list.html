@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Titulaciones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Titulaciones</h1>
+    <p class="page-subtitle">Gestión de titulaciones y sustentaciones.</p>
+  </div>
+  <a href="{% url 'egresados:titulacion_create' %}" class="btn btn-primary">+ Registrar Titulación</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por título..." class="form-control" style="width: 280px;">
+      <select name="estado" class="form-select" style="width: 180px;">
+        <option value="">Todos los estados</option>
+        <option value="EN_PROCESO" {% if estado_filtro == "EN_PROCESO" %}selected{% endif %}>En Proceso</option>
+        <option value="APROBADO" {% if estado_filtro == "APROBADO" %}selected{% endif %}>Aprobado</option>
+        <option value="OTORGADO" {% if estado_filtro == "OTORGADO" %}selected{% endif %}>Otorgado</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query or estado_filtro %}
+        <a href="{% url 'egresados:titulacion_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Título</th>
+          <th>Modalidad</th>
+          <th>Fecha Sustentación</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in titulaciones %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ t.egreso.estudiante.nombre_completo }}</div>
+            <div class="text-muted small">{{ t.egreso.estudiante.codigo }}</div>
+          </td>
+          <td>{{ t.titulo }}</td>
+          <td>{{ t.modalidad|default:"-" }}</td>
+          <td class="font-mono-tabular">{{ t.fecha_sustentacion|default:"-" }}</td>
+          <td>
+            <span class="badge {% if t.estado == 'OTORGADO' %}bg-success{% elif t.estado == 'APROBADO' %}bg-info{% else %}bg-warning{% endif %}">
+              {{ t.get_estado_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'egresados:titulacion_update' t.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran titulaciones.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

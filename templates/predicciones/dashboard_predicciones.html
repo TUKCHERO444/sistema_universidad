@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Modelos Predictivos & Riesgo Académico{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Gestión de Modelos Predictivos & Riesgo Estudiantil</h1>
+    <p class="page-subtitle">Entrenamiento reproducible, evaluación comparativa cronológica y estimación de riesgo sin fuga de datos.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <form method="post" action="{% url 'predicciones:entrenar_modelos' %}" class="d-inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary" onclick="return confirm('¿Desea ejecutar el Pipeline completo de entrenamiento y evaluación comparativa?');">
+        Ejecutar Pipeline ML (Train/Eval)
+      </button>
+    </form>
+    <form method="post" action="{% url 'predicciones:generar_predicciones' %}" class="d-inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-secondary">
+        Recalcular Inferencia Lote
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="banner-synthetic">
+  <svg style="width:18px;height:18px;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+  <div>
+    <strong>Demostración con datos sintéticos:</strong> Los modelos están entrenados con partición cronológica sobre cohortes académicas sintéticas. Las probabilidades estimadas deben interpretarse exclusivamente como herramientas pedagógicas de alerta temprana.
+  </div>
+</div>
+
+<!-- Tabla Comparativa de Versiones de Modelos Evaluados -->
+<div class="table-container mb-4">
+  <div class="table-toolbar d-flex justify-content-between align-items-center">
+    <div>
+      <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Modelos Entrenados y Métricas de Evaluación Cronológica (Test Set)</span>
+      <span class="text-muted small ms-2">(Total snapshots: {{ total_snapshots }} | Históricos evaluables: {{ snapshots_evaluables }})</span>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Modelo / Algoritmo</th>
+          <th>Versión</th>
+          <th>Recall Desaprobación</th>
+          <th>Precision</th>
+          <th>F1-Score</th>
+          <th>Brier Score (Calibración)</th>
+          <th>Matriz Confusión (TN / FP / FN / TP)</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in modelos %}
+        <tr>
+          <td>
+            <div class="fw-bold text-dark">{{ m.nombre }}</div>
+            <div class="text-muted small">{{ m.get_algoritmo_display }}</div>
+          </td>
+          <td class="font-mono-tabular small"><code>{{ m.version }}</code></td>
+          <td class="font-mono-tabular text-center fw-bold text-primary">
+            {{ m.metricas_evaluacion.recall_desaprobacion|default:"-" }}
+          </td>
+          <td class="font-mono-tabular text-center">
+            {{ m.metricas_evaluacion.precision_desaprobacion|default:"-" }}
+          </td>
+          <td class="font-mono-tabular text-center fw-bold">
+            {{ m.metricas_evaluacion.f1_desaprobacion|default:"-" }}
+          </td>
+          <td class="font-mono-tabular text-center small text-muted">
+            {{ m.metricas_evaluacion.brier_score|default:"-" }}
+          </td>
+          <td class="font-mono-tabular small text-center">
+            {% if m.metricas_evaluacion.matriz_confusion %}
+              TN:{{ m.metricas_evaluacion.matriz_confusion.verdaderos_negativos }} | 
+              FP:{{ m.metricas_evaluacion.matriz_confusion.falsos_positivos }} | 
+              FN:{{ m.metricas_evaluacion.matriz_confusion.falsos_negativos }} | 
+              TP:{{ m.metricas_evaluacion.matriz_confusion.verdaderos_positivos }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>
+            {% if m.activo %}
+              <span class="badge bg-success">ACTIVO EN INFERENCIA</span>
+            {% else %}
+              <span class="badge bg-secondary">Inactivo</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if not m.activo %}
+              <form method="post" action="{% url 'predicciones:modelo_activar' m.id %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-secondary">Activar</button>
+              </form>
+            {% else %}
+              <span class="text-success small fw-semibold">En Producción</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted p-4">No hay modelos predictivos entrenados en el sistema. Ejecute el Pipeline ML para comenzar.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Listado de Inferencia de Riesgo por Estudiante -->
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por estudiante o curso..." class="form-control" style="width: 240px;">
+      <select name="periodo" class="form-select" style="width: 170px;">
+        <option value="">Todos los Periodos</option>
+        {% for p in periodos %}
+          <option value="{{ p.id }}" {% if periodo_filtro == p.id|stringformat:"i" %}selected{% endif %}>{{ p.codigo }}</option>
+        {% endfor %}
+      </select>
+      <select name="nivel" class="form-select" style="width: 170px;">
+        <option value="">Todos los Niveles</option>
+        <option value="ALTO" {% if nivel_filtro == 'ALTO' %}selected{% endif %}>Alto Riesgo</option>
+        <option value="MEDIO" {% if nivel_filtro == 'MEDIO' %}selected{% endif %}>Riesgo Medio</option>
+        <option value="BAJO" {% if nivel_filtro == 'BAJO' %}selected{% endif %}>Bajo Riesgo</option>
+        <option value="INSUFICIENTE" {% if nivel_filtro == 'INSUFICIENTE' %}selected{% endif %}>Datos Insuficientes</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      {% if query or periodo_filtro or nivel_filtro %}
+        <a href="{% url 'predicciones:dashboard_predicciones' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Curso / Sección</th>
+          <th>Docente</th>
+          <th>Nota 1 al Corte</th>
+          <th>% Asist al Corte</th>
+          <th>Probabilidad de Riesgo</th>
+          <th>Nivel de Riesgo</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pred in predicciones %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ pred.instantanea.detalle_matricula.matricula.estudiante.nombre_completo }}</div>
+            <div class="text-muted small font-monospace">{{ pred.instantanea.detalle_matricula.matricula.estudiante.codigo }}</div>
+          </td>
+          <td>
+            <div>{{ pred.instantanea.detalle_matricula.seccion.curso.nombre }}</div>
+            <span class="badge bg-light text-dark border">Sec {{ pred.instantanea.detalle_matricula.seccion.codigo_seccion }} ({{ pred.instantanea.detalle_matricula.seccion.periodo.codigo }})</span>
+          </td>
+          <td>{{ pred.instantanea.detalle_matricula.seccion.docente.nombre_completo }}</td>
+          <td class="font-mono-tabular text-center">
+            {% if pred.instantanea.nota1 is not None %}
+              <span class="{% if pred.instantanea.nota1 < 10.5 %}text-danger fw-bold{% endif %}">{{ pred.instantanea.nota1 }}</span>
+            {% else %}
+              <span class="text-muted small">No registrada</span>
+            {% endif %}
+          </td>
+          <td class="font-mono-tabular text-center">
+            {% if pred.instantanea.porcentaje_asistencia is not None %}
+              {{ pred.instantanea.porcentaje_asistencia }}%
+            {% else %}
+              <span class="text-muted small">S/D</span>
+            {% endif %}
+          </td>
+          <td class="font-mono-tabular fw-bold text-center">
+            <span class="{% if pred.nivel_riesgo == 'ALTO' %}text-danger{% elif pred.nivel_riesgo == 'MEDIO' %}text-warning{% else %}text-success{% endif %}">
+              {{ pred.probabilidad_riesgo|floatformat:2 }} ({{ pred.probabilidad_riesgo|stringformat:".1%" }})
+            </span>
+          </td>
+          <td>
+            <span class="status-badge {% if pred.nivel_riesgo == 'ALTO' %}badge-riesgo-alto{% elif pred.nivel_riesgo == 'MEDIO' %}badge-riesgo-medio{% elif pred.nivel_riesgo == 'BAJO' %}badge-riesgo-bajo{% else %}badge-riesgo-insuficiente{% endif %}">
+              {{ pred.get_nivel_riesgo_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'predicciones:estudiante_riesgo_detalle' pred.id %}" class="btn btn-sm btn-secondary">
+              Factores & Guía
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted p-4">No se registran predicciones con los filtros indicados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

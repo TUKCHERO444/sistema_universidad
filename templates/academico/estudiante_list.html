@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Padrón de Estudiantes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Padrón de Estudiantes</h1>
+    <p class="page-subtitle">Registro centralizado de alumnos matriculados y egresados.</p>
+  </div>
+  <a href="{% url 'academico:estudiante_create' %}" class="btn btn-primary">+ Registrar Estudiante</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por código, nombres o DNI..." class="form-control" style="width: 260px;">
+      <select name="carrera" class="form-select" style="width: 220px;">
+        <option value="">Todas las Carreras</option>
+        {% for c in carreras %}
+          <option value="{{ c.id }}" {% if carrera_filtro == c.id|stringformat:"i" %}selected{% endif %}>{{ c.nombre }}</option>
+        {% endfor %}
+      </select>
+      <select name="estado" class="form-select" style="width: 150px;">
+        <option value="">Todos los Estados</option>
+        <option value="ACTIVO" {% if estado_filtro == 'ACTIVO' %}selected{% endif %}>Activo</option>
+        <option value="EGRESADO" {% if estado_filtro == 'EGRESADO' %}selected{% endif %}>Egresado</option>
+        <option value="RETIRADO" {% if estado_filtro == 'RETIRADO' %}selected{% endif %}>Retirado</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      {% if query or carrera_filtro or estado_filtro %}
+        <a href="{% url 'academico:estudiante_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Estudiante</th>
+          <th>DNI</th>
+          <th>Carrera Profesional</th>
+          <th>Correo</th>
+          <th>Estado Académico</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in estudiantes %}
+        <tr>
+          <td class="font-mono-tabular fw-semibold">{{ e.codigo }}</td>
+          <td>
+            <div class="fw-semibold">{{ e.nombre_completo }}</div>
+            <div class="text-muted small">Usuario: <code>{{ e.usuario.username }}</code></div>
+          </td>
+          <td class="font-mono-tabular">{{ e.dni }}</td>
+          <td>{{ e.carrera.nombre }}</td>
+          <td>{{ e.correo }}</td>
+          <td>
+            <span class="status-badge {% if e.estado == 'ACTIVO' %}badge-aprobado{% elif e.estado == 'EGRESADO' %}badge-riesgo-bajo{% else %}badge-desaprobado{% endif %}">
+              {{ e.get_estado_display }}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran estudiantes con los filtros indicados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

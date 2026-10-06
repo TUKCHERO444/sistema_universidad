@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Postulaciones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Postulaciones</h1>
+    <p class="page-subtitle">Gestión de postulaciones a procesos de admisión.</p>
+  </div>
+  <a href="{% url 'admision:postulacion_create' %}" class="btn btn-primary">+ Nueva Postulación</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar..." class="form-control" style="width: 200px;">
+      <select name="proceso" class="form-select" style="width: 200px;">
+        <option value="">Todos los procesos</option>
+        {% for p in procesos %}
+        <option value="{{ p.id }}" {% if proceso_filtro == p.id|stringformat:"s" %}selected{% endif %}>{{ p.nombre }}</option>
+        {% endfor %}
+      </select>
+      <select name="estado" class="form-select" style="width: 180px;">
+        <option value="">Todos los estados</option>
+        <option value="REGISTRADA" {% if estado_filtro == "REGISTRADA" %}selected{% endif %}>Registrada</option>
+        <option value="EN_EVALUACION" {% if estado_filtro == "EN_EVALUACION" %}selected{% endif %}>En Evaluación</option>
+        <option value="ADMITIDA" {% if estado_filtro == "ADMITIDA" %}selected{% endif %}>Admitida</option>
+        <option value="NO_ADMITIDA" {% if estado_filtro == "NO_ADMITIDA" %}selected{% endif %}>No Admitida</option>
+        <option value="ANULADA" {% if estado_filtro == "ANULADA" %}selected{% endif %}>Anulada</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query or proceso_filtro or estado_filtro %}
+        <a href="{% url 'admision:postulacion_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Carrera</th>
+          <th>Modalidad</th>
+          <th>Fecha Postulación</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in postulaciones %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">#{{ p.id }}</td>
+          <td>{{ p.carrera.nombre }}</td>
+          <td>{{ p.modalidad.nombre }}</td>
+          <td class="font-mono-tabular">{{ p.fecha_postulacion }}</td>
+          <td>
+            <span class="badge {% if p.estado == 'ADMITIDA' %}bg-success{% elif p.estado == 'NO_ADMITIDA' %}bg-danger{% elif p.estado == 'EN_EVALUACION' %}bg-warning{% else %}bg-secondary{% endif %}">
+              {{ p.get_estado_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'admision:postulacion_detail' p.pk %}" class="btn btn-sm btn-info">Ver</a>
+            <a href="{% url 'admision:postulacion_update' p.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran postulaciones.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

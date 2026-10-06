@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel Docente{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Panel del Docente</h1>
+    <p class="page-subtitle">Bienvenido(a), {{ user.get_full_name }}. Gestión de asistencia, notas y seguimiento de secciones asignadas.</p>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4">
+    <div class="metric-card">
+      <div class="metric-title">Secciones a Cargo</div>
+      <div class="metric-value">{{ total_secciones }}</div>
+      <div class="metric-caption">Periodo {{ periodo_actual.codigo|default:"Actual" }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="metric-card">
+      <div class="metric-title">Estudiantes Asignados</div>
+      <div class="metric-value">{{ total_estudiantes_asignados }}</div>
+      <div class="metric-caption">Inscripciones activas</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="metric-card">
+      <div class="metric-title">Alertas Detectadas</div>
+      <div class="metric-value">{{ alertas_estudiantes|length }}</div>
+      <div class="metric-caption">Riesgo medio y alto</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Mis Secciones -->
+  <div class="col-lg-7">
+    <div class="table-container">
+      <div class="table-toolbar">
+        <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Mis Asignaturas y Secciones</span>
+      </div>
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Curso</th>
+              <th>Sección</th>
+              <th>Inscritos / Capacidad</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sec in secciones %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ sec.curso.nombre }}</div>
+                <div class="text-muted small font-monospace">{{ sec.curso.codigo }} - {{ sec.curso.carrera.nombre }}</div>
+              </td>
+              <td><span class="badge bg-light text-dark border">Sec {{ sec.codigo_seccion }}</span></td>
+              <td class="font-mono-tabular">{{ sec.vacantes_ocupadas }} / {{ sec.capacidad_maxima }}</td>
+              <td>
+                <div class="d-flex gap-1">
+                  <a href="{% url 'asistencia:sesion_registro_seccion' sec.id %}" class="btn btn-sm btn-secondary" title="Tomar Asistencia">
+                    Asistencia
+                  </a>
+                  <a href="{% url 'calificaciones:seccion_calificaciones' sec.id %}" class="btn btn-sm btn-primary" title="Registrar Notas">
+                    Notas
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted p-4">No tiene secciones asignadas en el periodo actual.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertas Pedagógicas -->
+  <div class="col-lg-5">
+    <div class="table-container">
+      <div class="table-toolbar">
+        <span class="fw-bold" style="font-size:13.5px;color:#b91c1c;">Alertas de Rendimiento (ML)</span>
+      </div>
+      <div class="p-3">
+        {% if alertas_estudiantes %}
+          <div class="d-flex flex-column gap-2">
+            {% for alt in alertas_estudiantes %}
+            <div class="p-3 border rounded bg-white" style="border-left: 4px solid {% if alt.nivel_riesgo == 'ALTO' %}#dc2626{% else %}#d97706{% endif %} !important;">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <div class="fw-bold text-dark">{{ alt.instantanea.detalle_matricula.matricula.estudiante.nombre_completo }}</div>
+                  <div class="text-muted small">{{ alt.instantanea.detalle_matricula.seccion.curso.codigo }} - Sec {{ alt.instantanea.detalle_matricula.seccion.codigo_seccion }}</div>
+                </div>
+                <span class="status-badge {% if alt.nivel_riesgo == 'ALTO' %}badge-riesgo-alto{% else %}badge-riesgo-medio{% endif %}">
+                  {{ alt.get_nivel_riesgo_display }}
+                </span>
+              </div>
+              <div class="mt-2 text-secondary small">
+                {{ alt.orientacion_academica|truncatechars:120 }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-4">
+            No se registran alertas críticas en sus secciones.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

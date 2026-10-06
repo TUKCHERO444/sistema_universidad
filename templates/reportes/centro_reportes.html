@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Centro de Reportes Institucionales{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Centro de Emisión de Reportes</h1>
+    <p class="page-subtitle">Exportación de actas oficiales, sábanas de notas y reportes confidenciales de Machine Learning en PDF y Excel.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Actas Oficiales de Calificaciones por Sección -->
+  <div class="col-lg-8">
+    <div class="table-container">
+      <div class="table-toolbar">
+        <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Actas Oficiales de Evaluación por Sección</span>
+      </div>
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Periodo</th>
+              <th>Asignatura</th>
+              <th>Sección</th>
+              <th>Docente</th>
+              <th>Exportar PDF</th>
+              <th>Exportar Excel</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in secciones %}
+            <tr>
+              <td class="font-mono-tabular fw-semibold">{{ s.periodo.codigo }}</td>
+              <td>
+                <div class="fw-semibold">{{ s.curso.nombre }}</div>
+                <div class="text-muted small font-monospace">{{ s.curso.codigo }}</div>
+              </td>
+              <td><span class="badge bg-light text-dark border">Sec {{ s.codigo_seccion }}</span></td>
+              <td>{{ s.docente.nombre_completo }}</td>
+              <td>
+                <a href="{% url 'reportes:acta_pdf' s.id %}" target="_blank" class="btn btn-sm btn-secondary">
+                  PDF
+                </a>
+              </td>
+              <td>
+                <a href="{% url 'reportes:acta_excel' s.id %}" class="btn btn-sm btn-secondary">
+                  Excel
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted p-4">No hay secciones registradas.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reporte Confidencial de Machine Learning -->
+  <div class="col-lg-4">
+    <div class="form-panel">
+      <div class="form-group-title">Reportes Confidenciales de Analítica & ML</div>
+      <p class="small text-secondary mb-3">
+        Descargue la sábana de predicciones institucionales con probabilidades estimadas, factores observados y métricas del modelo activo.
+      </p>
+
+      {% if modelo_activo %}
+      <div class="p-3 bg-light rounded border mb-3">
+        <div class="fw-bold text-dark mb-1">{{ modelo_activo.nombre }}</div>
+        <div class="text-muted small">Versión: <code>{{ modelo_activo.version }}</code></div>
+        <div class="text-muted small">F1-Score: <strong>{{ modelo_activo.metricas_evaluacion.f1_desaprobacion }}</strong></div>
+      </div>
+      <a href="{% url 'reportes:predicciones_pdf' %}" target="_blank" class="btn btn-primary w-100 mb-2">
+        Descargar Reporte ML (PDF)
+      </a>
+      {% else %}
+      <div class="alert alert-warning small">
+        No hay modelo predictivo activo actualmente.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

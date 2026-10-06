@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Predicción de Riesgo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Detalle de Factores Observados & Recomendaciones</h1>
+    <p class="page-subtitle">
+      Estudiante: <strong>{{ s.detalle_matricula.matricula.estudiante.nombre_completo }}</strong> ({{ s.detalle_matricula.matricula.estudiante.codigo }}) | 
+      Curso: <strong>{{ s.detalle_matricula.seccion.curso.nombre }}</strong>
+    </p>
+  </div>
+  <a href="{% url 'predicciones:dashboard_predicciones' %}" class="btn btn-secondary">Volver al Panel ML</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="form-panel h-100">
+      <div class="form-group-title">Estimación del Modelo Activo</div>
+      
+      <div class="p-3 bg-light rounded border text-center mb-4">
+        <div class="text-muted small mb-1">Probabilidad de Desaprobación</div>
+        <div class="fs-1 fw-bold font-monospace {% if p.nivel_riesgo == 'ALTO' %}text-danger{% elif p.nivel_riesgo == 'MEDIO' %}text-warning{% else %}text-success{% endif %}">
+          {{ p.probabilidad_riesgo|floatformat:2 }} <span style="font-size:18px;">({{ p.probabilidad_riesgo|stringformat:".1%" }})</span>
+        </div>
+        <div class="mt-2">
+          <span class="status-badge {% if p.nivel_riesgo == 'ALTO' %}badge-riesgo-alto{% elif p.nivel_riesgo == 'MEDIO' %}badge-riesgo-medio{% elif p.nivel_riesgo == 'BAJO' %}badge-riesgo-bajo{% else %}badge-riesgo-insuficiente{% endif %} px-3 py-1">
+            {{ p.get_nivel_riesgo_display }}
+          </span>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Modelo Predictivo Utilizado</label>
+        <div><strong>{{ m.nombre }}</strong> (<code>{{ m.version }}</code>)</div>
+        <div class="text-muted small">Algoritmo: {{ m.get_algoritmo_display }}</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Fecha de Generación del Snapshot</label>
+        <div class="font-monospace small">{{ s.fecha_corte|date:"d/m/Y" }}</div>
+      </div>
+
+      <div class="p-3 bg-white rounded border border-primary text-primary small">
+        <strong>Orientación Sugerida:</strong><br>
+        {{ p.orientacion_academica }}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="form-panel h-100">
+      <div class="form-group-title">Variables Académicas Observadas al Corte (Sin Fuga de Datos)</div>
+      
+      <table class="table table-bordered mb-4" style="font-size:13px;">
+        <thead class="table-light">
+          <tr>
+            <th>Variable Predictiva</th>
+            <th>Valor Observado</th>
+            <th>Diagnóstico Contextual</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Nota 1 (Evaluación 1)</strong></td>
+            <td class="font-monospace text-center fw-bold">{{ s.nota1|default:"No registrada" }}</td>
+            <td>
+              {% if s.nota1 is not None %}
+                {% if s.nota1 < 10.5 %}
+                  <span class="text-danger fw-semibold">Deficiente (menor a 10.50)</span>
+                {% elif s.nota1 < 13.0 %}
+                  <span class="text-warning fw-semibold">Regular (en riesgo de promedio)</span>
+                {% else %}
+                  <span class="text-success fw-semibold">Satisfactorio</span>
+                {% endif %}
+              {% else %}
+                <span class="text-muted">Pendiente al corte</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td><strong>% Asistencia Acumulada</strong></td>
+            <td class="font-monospace text-center fw-bold">{{ s.porcentaje_asistencia|default:"-" }}%</td>
+            <td>
+              {% if s.porcentaje_asistencia is not None %}
+                {% if s.porcentaje_asistencia < 70 %}
+                  <span class="text-danger fw-semibold">Crítica (debajo del 70%)</span>
+                {% else %}
+                  <span class="text-success">Regular</span>
+                {% endif %}
+              {% else %}
+                <span class="text-muted">Sin sesiones evaluadas</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Faltas / Tardanzas al Corte</strong></td>
+            <td class="font-monospace text-center">{{ s.total_faltas }} F / {{ s.total_tardanzas }} T</td>
+            <td>En un total de {{ s.sesiones_consideradas }} sesiones válidas</td>
+          </tr>
+          <tr>
+            <td><strong>Promedio Histórico Previo</strong></td>
+            <td class="font-monospace text-center">{{ s.promedio_historico_anterior|default:"-" }}</td>
+            <td>
+              {% if s.sin_historial_previo %}
+                <span class="badge bg-secondary">Estudiante de Primer Ciclo</span>
+              {% else %}
+                Historial de semestres cerrados
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Cursos Desaprobados Anteriores</strong></td>
+            <td class="font-monospace text-center">{{ s.cursos_desaprobados_anteriores }}</td>
+            <td>Asignaturas reprobadas en semestres previos</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="alert alert-light border small text-muted mb-0">
+        <strong>Nota metodológica:</strong> Las variables del snapshot son inmutables y corresponden con rigor a los registros existentes a la fecha de corte predictivo, excluyendo deliberadamente notas posteriores o promedios finales futuros.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

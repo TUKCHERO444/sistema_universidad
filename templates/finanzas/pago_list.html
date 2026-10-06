@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Pagos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Pagos</h1>
+    <p class="page-subtitle">Gestión de pagos realizados.</p>
+  </div>
+  <a href="{% url 'finanzas:pago_create' %}" class="btn btn-primary">+ Registrar Pago</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar..." class="form-control" style="width: 250px;">
+      <select name="metodo" class="form-select" style="width: 180px;">
+        <option value="">Todos los métodos</option>
+        <option value="EFECTIVO" {% if metodo_filtro == "EFECTIVO" %}selected{% endif %}>Efectivo</option>
+        <option value="TARJETA" {% if metodo_filtro == "TARJETA" %}selected{% endif %}>Tarjeta</option>
+        <option value="TRANSFERENCIA" {% if metodo_filtro == "TRANSFERENCIA" %}selected{% endif %}>Transferencia</option>
+        <option value="BANCO" {% if metodo_filtro == "BANCO" %}selected{% endif %}>Banco</option>
+        <option value="OTRO" {% if metodo_filtro == "OTRO" %}selected{% endif %}>Otro</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query or metodo_filtro %}
+        <a href="{% url 'finanzas:pago_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Estudiante</th>
+          <th>Monto</th>
+          <th>Método</th>
+          <th>N° Operación</th>
+          <th>Fecha Pago</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pagos %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">#{{ p.id }}</td>
+          <td>
+            <div class="fw-semibold">{{ p.cuenta.estudiante.nombre_completo }}</div>
+            <div class="text-muted small">{{ p.cuenta.estudiante.codigo }}</div>
+          </td>
+          <td class="font-mono-tabular">S/ {{ p.monto }}</td>
+          <td>
+            <span class="badge bg-info">{{ p.get_metodo_display }}</span>
+          </td>
+          <td class="font-mono-tabular">{{ p.numero_operacion|default:"-" }}</td>
+          <td class="font-mono-tabular">{{ p.fecha_pago }}</td>
+          <td>
+            <span class="badge {% if p.estado == 'REGISTRADO' %}bg-success{% else %}bg-secondary{% endif %}">
+              {{ p.get_estado_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'finanzas:pago_update' p.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted p-4">No se registran pagos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Alertas Académicas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Centro de Alertas Académicas</h1>
+    <p class="page-subtitle">Diferenciación entre alertas normativas (reglas) y predicciones de riesgo (Machine Learning).</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Reglas Normativas -->
+  <div class="col-lg-6">
+    <div class="table-container">
+      <div class="table-toolbar">
+        <span class="fw-bold" style="font-size:13.5px;color:#b45309;">Alertas Normativas Deterministas</span>
+      </div>
+      <div class="p-3">
+        {% if alertas_reglas %}
+          <div class="d-flex flex-column gap-2">
+            {% for r in alertas_reglas %}
+            <div class="p-3 border rounded bg-white" style="border-left: 4px solid {% if r.nivel == 'PELIGRO' %}#dc2626{% else %}#d97706{% endif %} !important;">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-dark">{{ r.estudiante.nombre_completo }}</span>
+                <span class="badge {% if r.nivel == 'PELIGRO' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ r.categoria }}</span>
+              </div>
+              <div class="text-secondary small">{{ r.mensaje }} - {{ r.curso.nombre }}</div>
+              <div class="text-muted small mt-2"><strong>Acción:</strong> {{ r.accion_sugerida }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted text-center py-4">No se detectan alertas normativas activas.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Predicciones ML -->
+  <div class="col-lg-6">
+    <div class="table-container">
+      <div class="table-toolbar">
+        <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Estimación de Riesgo de Desaprobación (ML)</span>
+      </div>
+      <div class="p-3">
+        {% if predicciones %}
+          <div class="d-flex flex-column gap-2">
+            {% for p in predicciones %}
+            <div class="p-3 border rounded bg-white" style="border-left: 4px solid {% if p.nivel_riesgo == 'ALTO' %}#dc2626{% elif p.nivel_riesgo == 'MEDIO' %}#d97706{% else %}#059669{% endif %} !important;">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-dark">{{ p.instantanea.detalle_matricula.matricula.estudiante.nombre_completo }}</span>
+                <span class="status-badge {% if p.nivel_riesgo == 'ALTO' %}badge-riesgo-alto{% elif p.nivel_riesgo == 'MEDIO' %}badge-riesgo-medio{% else %}badge-riesgo-bajo{% endif %}">
+                  {{ p.get_nivel_riesgo_display }}
+                </span>
+              </div>
+              <div class="d-flex justify-content-between text-secondary small">
+                <span>{{ p.instantanea.detalle_matricula.seccion.curso.codigo }} - Sec {{ p.instantanea.detalle_matricula.seccion.codigo_seccion }}</span>
+                <span class="font-monospace fw-bold text-danger">Probabilidad: {{ p.probabilidad_riesgo|stringformat:".1%" }}</span>
+              </div>
+              <div class="text-muted small mt-2">{{ p.orientacion_academica }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted text-center py-4">No se registran predicciones generadas para sus secciones.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

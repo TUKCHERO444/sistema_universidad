@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Modalidades de Ingreso{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Modalidades de Ingreso</h1>
+    <p class="page-subtitle">Gestión de modalidades de admisión.</p>
+  </div>
+  <a href="{% url 'admision:modalidad_create' %}" class="btn btn-primary">+ Nueva Modalidad</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre..." class="form-control" style="width: 280px;">
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query %}
+        <a href="{% url 'admision:modalidad_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in modalidades %}
+        <tr>
+          <td class="fw-semibold">{{ m.nombre }}</td>
+          <td>{{ m.descripcion|default:"-"|truncatechars:80 }}</td>
+          <td>
+            <span class="badge {% if m.estado %}bg-success{% else %}bg-secondary{% endif %}">
+              {% if m.estado %}Activo{% else %}Inactivo{% endif %}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'admision:modalidad_update' m.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-muted p-4">No se registran modalidades.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

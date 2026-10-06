@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Reportes Académicos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Descarga de Boletas y Constancias</h1>
+    <p class="page-subtitle">Estudiante: <strong>{{ estudiante.nombre_completo }}</strong> ({{ estudiante.codigo }})</p>
+  </div>
+</div>
+
+<div class="table-container">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Periodo Académico</th>
+          <th>Matrícula</th>
+          <th>Total Créditos</th>
+          <th>Estado</th>
+          <th>Boleta Oficial (PDF)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matriculas %}
+        <tr>
+          <td class="font-mono-tabular fw-semibold">{{ m.periodo.codigo }} - {{ m.periodo.nombre }}</td>
+          <td class="font-mono-tabular">{{ m.codigo }}</td>
+          <td class="font-mono-tabular text-center">{{ m.total_creditos }} cr.</td>
+          <td>
+            <span class="status-badge badge-aprobado">Registrada</span>
+          </td>
+          <td>
+            <a href="{% url 'reportes:estudiante_pdf' m.id %}" target="_blank" class="btn btn-sm btn-primary">
+              Descargar Boleta PDF
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted p-4">No cuenta con matrículas para emitir boletas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

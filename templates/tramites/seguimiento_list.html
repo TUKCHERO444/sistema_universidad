@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Seguimientos de Trámites{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Seguimientos de Trámites</h1>
+    <p class="page-subtitle">Historial de seguimientos de solicitudes.</p>
+  </div>
+  <a href="{% url 'tramites:seguimiento_create' %}" class="btn btn-primary">+ Nuevo Seguimiento</a>
+</div>
+
+<div class="table-container">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Solicitud</th>
+          <th>Estudiante</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in seguimientos %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">#{{ s.id }}</td>
+          <td class="font-mono-tabular">#{{ s.solicitud.id }}</td>
+          <td>{{ s.solicitud.estudiante.nombre_completo }}</td>
+          <td>{{ s.estado }}</td>
+          <td class="font-mono-tabular">{{ s.fecha }}</td>
+          <td>
+            <a href="{% url 'tramites:seguimiento_update' s.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran seguimientos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

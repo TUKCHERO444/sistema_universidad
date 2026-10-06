@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ titulo }}</h1>
+  </div>
+  <a href="{% url 'egresados:egreso_list' %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      {% csrf_token %}
+      <div class="col-md-6">
+        <label class="form-label">Estudiante</label>
+        {{ form.estudiante }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Egreso</label>
+        {{ form.fecha_egreso }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Créditos Aprobados</label>
+        {{ form.creditos_aprobados }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Promedio General</label>
+        {{ form.promedio_general }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Observación</label>
+        {{ form.observacion }}
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'egresados:egreso_list' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

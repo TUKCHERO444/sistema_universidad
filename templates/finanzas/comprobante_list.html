@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Comprobantes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Comprobantes</h1>
+    <p class="page-subtitle">Gestión de comprobantes de pago.</p>
+  </div>
+  <a href="{% url 'finanzas:comprobante_create' %}" class="btn btn-primary">+ Nuevo Comprobante</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por serie o número..." class="form-control" style="width: 250px;">
+      <select name="tipo" class="form-select" style="width: 180px;">
+        <option value="">Todos los tipos</option>
+        <option value="BOLETA" {% if tipo_filtro == "BOLETA" %}selected{% endif %}>Boleta</option>
+        <option value="FACTURA" {% if tipo_filtro == "FACTURA" %}selected{% endif %}>Factura</option>
+        <option value="RECIBO" {% if tipo_filtro == "RECIBO" %}selected{% endif %}>Recibo</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query or tipo_filtro %}
+        <a href="{% url 'finanzas:comprobante_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Serie</th>
+          <th>Número</th>
+          <th>Estudiante</th>
+          <th>Monto</th>
+          <th>Fecha Emisión</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in comprobantes %}
+        <tr>
+          <td>
+            <span class="badge bg-primary">{{ c.get_tipo_display }}</span>
+          </td>
+          <td class="font-mono-tabular">{{ c.serie|default:"-" }}</td>
+          <td class="font-mono-tabular">{{ c.numero|default:"-" }}</td>
+          <td>
+            <div class="fw-semibold">{{ c.pago.cuenta.estudiante.nombre_completo }}</div>
+            <div class="text-muted small">{{ c.pago.cuenta.estudiante.codigo }}</div>
+          </td>
+          <td class="font-mono-tabular">S/ {{ c.pago.monto }}</td>
+          <td class="font-mono-tabular">{{ c.fecha_emision }}</td>
+          <td>
+            <a href="{% url 'finanzas:comprobante_update' c.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No se registran comprobantes.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

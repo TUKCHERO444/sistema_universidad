@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Portal del Estudiante{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mi Portal Académico</h1>
+    <p class="page-subtitle">Bienvenido(a), <strong>{{ estudiante.nombre_completo }}</strong> (Código: <code>{{ estudiante.codigo }}</code>) - {{ estudiante.carrera.nombre }}</p>
+  </div>
+</div>
+
+{% if matricula_activa %}
+<div class="table-container mb-4">
+  <div class="table-toolbar">
+    <div>
+      <span class="fw-bold" style="font-size:14px;color:#1e3a8a;">Matrícula Vigente: {{ matricula_activa.codigo }}</span>
+      <span class="badge bg-success ms-2">{{ matricula_activa.periodo.codigo }}</span>
+    </div>
+    <span class="text-secondary small font-monospace">Total Créditos Inscritos: <strong>{{ matricula_activa.total_creditos }}</strong></span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Asignatura</th>
+          <th>Docente</th>
+          <th>Créditos</th>
+          <th>Nota 1</th>
+          <th>Nota 2</th>
+          <th>Nota 3</th>
+          <th>Promedio Final</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for det in cursos_inscritos %}
+        <tr>
+          <td class="font-mono-tabular fw-semibold">{{ det.seccion.curso.codigo }}</td>
+          <td>
+            <div class="fw-semibold">{{ det.seccion.curso.nombre }}</div>
+            <div class="text-muted small">Sección {{ det.seccion.codigo_seccion }}</div>
+          </td>
+          <td>{{ det.seccion.docente.nombre_completo }}</td>
+          <td class="font-mono-tabular text-center">{{ det.seccion.curso.creditos }}</td>
+          <td class="font-mono-tabular text-center">{{ det.calificacion.nota1|default:"-" }}</td>
+          <td class="font-mono-tabular text-center">{{ det.calificacion.nota2|default:"-" }}</td>
+          <td class="font-mono-tabular text-center">{{ det.calificacion.nota3|default:"-" }}</td>
+          <td class="font-mono-tabular text-center fw-bold">
+            {% if det.calificacion.promedio_final is not None %}
+              <span class="{% if det.calificacion.promedio_final >= 13 %}text-success{% else %}text-danger{% endif %}">
+                {{ det.calificacion.promedio_final }}
+              </span>
+            {% else %}
+              <span class="text-muted">Pendiente</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="status-badge {% if det.calificacion.estado_aprobacion == 'APROBADO' %}badge-aprobado{% elif det.calificacion.estado_aprobacion == 'DESAPROBADO' %}badge-desaprobado{% else %}badge-pendiente{% endif %}">
+              {{ det.calificacion.get_estado_aprobacion_display }}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted p-4">No tiene asignaturas activas registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card p-5 text-center bg-white border">
+  <div class="text-muted mb-2">No se registra una matrícula activa en el periodo académico vigente.</div>
+  <p class="small text-secondary mb-0">Consulte en secretaría académica o revise el calendario de matrículas.</p>
+</div>
+{% endif %}
+
+<div class="d-flex gap-2">
+  <a href="{% url 'analitica:mi_evolucion' %}" class="btn btn-secondary">
+    Ver mi Gráfico de Evolución Académica
+  </a>
+  <a href="{% url 'asistencia:mi_asistencia' %}" class="btn btn-secondary">
+    Consultar mi Registro de Asistencia
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro de Auditoría{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Bitácora de Auditoría del Sistema</h1>
+    <p class="page-subtitle">Trazabilidad inmutable de eventos sensibles, operaciones de matrícula, modificaciones de notas y accesos.</p>
+  </div>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por usuario o descripción..." class="form-control" style="width: 280px;">
+      <select name="modulo" class="form-select" style="width: 180px;">
+        <option value="">Todos los Módulos</option>
+        {% for m in modulos_disponibles %}
+          <option value="{{ m }}" {% if modulo_filtro == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      {% if query or modulo_filtro %}
+        <a href="{% url 'cuentas:auditoria_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Fecha y Hora</th>
+          <th>Usuario</th>
+          <th>Módulo</th>
+          <th>Acción</th>
+          <th>Descripción del Evento</th>
+          <th>Dirección IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in auditorias %}
+        <tr>
+          <td class="font-mono-tabular" style="white-space:nowrap;">{{ a.fecha_hora|date:"Y-m-d H:i:s" }}</td>
+          <td>
+            <span class="fw-semibold">{{ a.usuario.username|default:"Sistema" }}</span>
+          </td>
+          <td><span class="badge bg-light text-dark border">{{ a.modulo }}</span></td>
+          <td>
+            <span class="badge {% if a.accion == 'CREAR' %}bg-success{% elif a.accion == 'ANULAR' or a.accion == 'ELIMINAR' %}bg-danger{% elif a.accion == 'ACTUALIZAR' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+              {{ a.accion }}
+            </span>
+          </td>
+          <td style="font-size:12.5px;">{{ a.descripcion }}</td>
+          <td class="font-mono-tabular small text-muted">{{ a.ip_address|default:"127.0.0.1" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran eventos de auditoría con los filtros aplicados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

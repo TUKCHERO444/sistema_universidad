@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel Institucional{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Panel Institucional de Gestión</h1>
+    <p class="page-subtitle">Supervisión académica, analítica institucional y estado del modelo predictivo.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'matriculas:matricula_create' %}" class="btn btn-primary">
+      <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Nueva Matrícula
+    </a>
+    <a href="{% url 'predicciones:dashboard_predicciones' %}" class="btn btn-secondary">
+      Evaluación ML
+    </a>
+  </div>
+</div>
+
+{% if modelo_activo and modelo_activo.es_sintetico %}
+<div class="banner-synthetic">
+  <svg style="width:18px;height:18px;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+  <div>
+    <strong>Demostración con datos sintéticos:</strong> El sistema y los modelos predictivos están operando actualmente en modo demostración para validación de algoritmos y arquitectura.
+  </div>
+</div>
+{% endif %}
+
+<!-- Métricas Operativas Clave -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="metric-card">
+      <div class="metric-title">Estudiantes Activos</div>
+      <div class="metric-value">{{ total_estudiantes }}</div>
+      <div class="metric-caption">En todos los programas</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="metric-card">
+      <div class="metric-title">Matrículas Periodo</div>
+      <div class="metric-value">{{ total_matriculas }}</div>
+      <div class="metric-caption">Periodo {{ periodo_actual.codigo|default:"Actual" }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="metric-card">
+      <div class="metric-title">Cuerpo Docente</div>
+      <div class="metric-value">{{ total_docentes }}</div>
+      <div class="metric-caption">{{ total_secciones }} secciones activas</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="metric-card">
+      <div class="metric-title">Programas & Cursos</div>
+      <div class="metric-value">{{ total_carreras }} <span style="font-size:16px;color:#64748b;">/ {{ total_cursos }}</span></div>
+      <div class="metric-caption">Carreras / Asignaturas</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bloque de Inteligencia Predictiva y Últimas Operaciones -->
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="table-container">
+      <div class="table-toolbar">
+        <div>
+          <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Alertas de Mayor Riesgo Académico (ML)</span>
+          <span class="badge bg-danger ms-2">Acción Prioritaria</span>
+        </div>
+        <a href="{% url 'predicciones:dashboard_predicciones' %}" class="btn btn-sm btn-secondary">Ver Todo</a>
+      </div>
+      {% if alertas_alto_riesgo %}
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Estudiante</th>
+              <th>Curso</th>
+              <th>Nota 1</th>
+              <th>Riesgo Est.</th>
+              <th>Nivel</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pred in alertas_alto_riesgo %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ pred.instantanea.detalle_matricula.matricula.estudiante.nombre_completo }}</div>
+                <div class="text-muted small font-monospace">{{ pred.instantanea.detalle_matricula.matricula.estudiante.codigo }}</div>
+              </td>
+              <td>{{ pred.instantanea.detalle_matricula.seccion.curso.codigo }}</td>
+              <td class="font-mono-tabular">
+                {% if pred.instantanea.nota1 is not None %}
+                  <span class="{% if pred.instantanea.nota1 < 10.5 %}text-danger fw-bold{% endif %}">{{ pred.instantanea.nota1 }}</span>
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
+              <td class="font-mono-tabular fw-bold text-danger">
+                {{ pred.probabilidad_riesgo|floatformat:2 }} ({{ pred.probabilidad_riesgo|stringformat:".2%" }})
+              </td>
+              <td>
+                <span class="status-badge badge-riesgo-alto">Alto Riesgo</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="p-4 text-center text-muted">
+        No hay alertas de alto riesgo registradas en el periodo actual.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="table-container">
+      <div class="table-toolbar">
+        <span class="fw-bold" style="font-size:13.5px;">Últimas Matrículas Registradas</span>
+        <a href="{% url 'matriculas:matricula_list' %}" class="btn btn-sm btn-secondary">Listado</a>
+      </div>
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Estudiante</th>
+              <th>Créditos</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for mat in ultimas_matriculas %}
+            <tr>
+              <td class="font-mono-tabular fw-semibold">{{ mat.codigo }}</td>
+              <td>{{ mat.estudiante.nombre_completo }}</td>
+              <td class="font-mono-tabular text-center">{{ mat.total_creditos }}</td>
+              <td>
+                <span class="status-badge {% if mat.es_valida %}badge-aprobado{% else %}badge-desaprobado{% endif %}">
+                  {{ mat.get_estado_display }}
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted p-3">No hay matrículas registradas.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

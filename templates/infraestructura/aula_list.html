@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Aulas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Aulas y Espacios</h1>
+    <p class="page-subtitle">Gestión de aulas, laboratorios y auditorios.</p>
+  </div>
+  <a href="{% url 'infraestructura:aula_create' %}" class="btn btn-primary">+ Nueva Aula</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por código o nombre..." class="form-control" style="width: 280px;">
+      <select name="tipo" class="form-select" style="width: 180px;">
+        <option value="">Todos los tipos</option>
+        <option value="AULA" {% if tipo_filtro == "AULA" %}selected{% endif %}>Aula</option>
+        <option value="LABORATORIO" {% if tipo_filtro == "LABORATORIO" %}selected{% endif %}>Laboratorio</option>
+        <option value="TALLER" {% if tipo_filtro == "TALLER" %}selected{% endif %}>Taller</option>
+        <option value="AUDITORIO" {% if tipo_filtro == "AUDITORIO" %}selected{% endif %}>Auditorio</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query or tipo_filtro %}
+        <a href="{% url 'infraestructura:aula_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre / Pabellón</th>
+          <th>Tipo</th>
+          <th>Capacidad</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in aulas %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">{{ a.codigo }}</td>
+          <td>
+            <div class="fw-semibold">{{ a.nombre|default:"-" }}</div>
+            <div class="text-muted small">{{ a.pabellon|default:"-" }} - Piso {{ a.piso|default:"-" }}</div>
+          </td>
+          <td>
+            <span class="badge bg-info">{{ a.get_tipo_display }}</span>
+          </td>
+          <td class="font-mono-tabular text-center">{{ a.capacidad }}</td>
+          <td>
+            <span class="badge {% if a.estado %}bg-success{% else %}bg-secondary{% endif %}">
+              {% if a.estado %}Activo{% else %}Inactivo{% endif %}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'infraestructura:aula_update' a.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran aulas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

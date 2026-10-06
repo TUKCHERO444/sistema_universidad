@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Carreras Universitaras{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Programas Académicos y Carreras</h1>
+    <p class="page-subtitle">Gestión de carreras profesionales de la universidad.</p>
+  </div>
+  <a href="{% url 'academico:carrera_create' %}" class="btn btn-primary">+ Nueva Carrera</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por código o nombre..." class="form-control" style="width: 280px;">
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query %}
+        <a href="{% url 'academico:carrera_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre del Programa</th>
+          <th>Cursos Asociados</th>
+          <th>Estudiantes</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in carreras %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">{{ c.codigo }}</td>
+          <td>
+            <div class="fw-semibold">{{ c.nombre }}</div>
+            {% if c.descripcion %}
+              <div class="text-muted small">{{ c.descripcion|truncatechars:80 }}</div>
+            {% endif %}
+          </td>
+          <td class="font-mono-tabular text-center">{{ c.total_cursos }}</td>
+          <td class="font-mono-tabular text-center">{{ c.total_estudiantes }}</td>
+          <td>
+            <span class="badge {% if c.activo %}bg-success{% else %}bg-secondary{% endif %}">
+              {% if c.activo %}Activo{% else %}Inactivo{% endif %}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'academico:carrera_update' c.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran carreras profesionales.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

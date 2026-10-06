@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Reportes Docentes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Descarga de Reportes de Mis Secciones</h1>
+    <p class="page-subtitle">Docente: <strong>{{ docente.nombre_completo }}</strong></p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="table-container">
+      <div class="table-toolbar">
+        <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Actas Oficiales de Evaluación</span>
+      </div>
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Periodo</th>
+              <th>Asignatura</th>
+              <th>Sección</th>
+              <th>Exportar PDF</th>
+              <th>Exportar Excel</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in secciones %}
+            <tr>
+              <td class="font-mono-tabular fw-semibold">{{ s.periodo.codigo }}</td>
+              <td>{{ s.curso.nombre }} (<code>{{ s.curso.codigo }}</code>)</td>
+              <td><span class="badge bg-light text-dark border">Sec {{ s.codigo_seccion }}</span></td>
+              <td>
+                <a href="{% url 'reportes:acta_pdf' s.id %}" target="_blank" class="btn btn-sm btn-secondary">PDF</a>
+              </td>
+              <td>
+                <a href="{% url 'reportes:acta_excel' s.id %}" class="btn btn-sm btn-secondary">Excel</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted p-4">No tiene secciones registradas.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="form-panel">
+      <div class="form-group-title">Reporte de Alertas & Riesgo ML</div>
+      <p class="small text-secondary mb-3">
+        Descargue el consolidado de riesgo académico y recomendaciones pedagógicas para los estudiantes a su cargo.
+      </p>
+      {% if modelo_activo %}
+        <a href="{% url 'reportes:predicciones_pdf' %}" target="_blank" class="btn btn-primary w-100">
+          Descargar Alertas de mis Secciones (PDF)
+        </a>
+      {% else %}
+        <div class="alert alert-warning small">No hay modelo predictivo activo.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

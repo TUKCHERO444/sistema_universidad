@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro de Calificaciones - {{ seccion.curso.codigo }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Acta de Calificaciones: {{ seccion.curso.nombre }}</h1>
+    <p class="page-subtitle">
+      Sección: <strong>{{ seccion.codigo_seccion }}</strong> | 
+      Periodo: <strong>{{ seccion.periodo.codigo }}</strong> | 
+      Docente: {{ seccion.docente.nombre_completo }} | 
+      Escala vigesimal: <strong>0.00 a 20.00</strong> (Aprobación $\ge 13.00$)
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'reportes:acta_pdf' seccion.id %}" target="_blank" class="btn btn-secondary btn-sm">
+      Descargar PDF
+    </a>
+    <a href="{% url 'reportes:acta_excel' seccion.id %}" class="btn btn-secondary btn-sm">
+      Descargar Excel
+    </a>
+    <a href="{% url 'academico:mis_secciones' %}" class="btn btn-secondary btn-sm">Volver</a>
+  </div>
+</div>
+
+<form method="post" class="table-container">
+  {% csrf_token %}
+  <div class="table-toolbar d-flex justify-content-between align-items-center">
+    <div>
+      <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Planilla de Evaluación de Estudiantes</span>
+      <span class="text-muted small ms-2">({{ inscritos|length }} inscripciones activas)</span>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <input type="text" name="motivo_general" placeholder="Motivo de cambio..." class="form-control form-control-sm" style="width: 220px;" value="Registro ordinario de evaluaciones">
+      <button type="submit" class="btn btn-sm btn-primary">Guardar Calificaciones</button>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table" id="gradeSheet">
+      <thead>
+        <tr>
+          <th>N°</th>
+          <th>Código</th>
+          <th>Estudiante</th>
+          <th style="width: 100px;">Eval 1 (N1)</th>
+          <th style="width: 100px;">Eval 2 (N2)</th>
+          <th style="width: 100px;">Eval 3 (N3)</th>
+          <th style="width: 120px;" class="text-center">Promedio Final</th>
+          <th class="text-center">Condición</th>
+          <th>Historial</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for det in inscritos %}
+        <tr data-row-id="{{ det.id }}">
+          <td class="text-center font-mono-tabular">{{ forloop.counter }}</td>
+          <td class="font-mono-tabular fw-semibold">{{ det.matricula.estudiante.codigo }}</td>
+          <td>
+            <div class="fw-semibold">{{ det.matricula.estudiante.nombre_completo }}</div>
+          </td>
+          <td>
+            <input type="number" step="0.01" min="0" max="20" name="nota1_{{ det.id }}" id="n1_{{ det.id }}" value="{{ det.calificacion.nota1|stringformat:'.2f'|default:'' }}" class="form-control form-control-sm font-monospace text-center grade-input" placeholder="0 - 20">
+          </td>
+          <td>
+            <input type="number" step="0.01" min="0" max="20" name="nota2_{{ det.id }}" id="n2_{{ det.id }}" value="{{ det.calificacion.nota2|stringformat:'.2f'|default:'' }}" class="form-control form-control-sm font-monospace text-center grade-input" placeholder="0 - 20">
+          </td>
+          <td>
+            <input type="number" step="0.01" min="0" max="20" name="nota3_{{ det.id }}" id="n3_{{ det.id }}" value="{{ det.calificacion.nota3|stringformat:'.2f'|default:'' }}" class="form-control form-control-sm font-monospace text-center grade-input" placeholder="0 - 20">
+          </td>
+          <td class="text-center font-mono-tabular fw-bold" id="pf_{{ det.id }}">
+            {% if det.calificacion.promedio_final is not None %}
+              <span class="{% if det.calificacion.promedio_final >= 13 %}text-success{% else %}text-danger{% endif %}">
+                {{ det.calificacion.promedio_final }}
+              </span>
+            {% else %}
+              <span class="text-muted small">Pendiente</span>
+            {% endif %}
+          </td>
+          <td class="text-center" id="status_{{ det.id }}">
+            <span class="status-badge {% if det.calificacion.estado_aprobacion == 'APROBADO' %}badge-aprobado{% elif det.calificacion.estado_aprobacion == 'DESAPROBADO' %}badge-desaprobado{% else %}badge-pendiente{% endif %}">
+              {{ det.calificacion.get_estado_aprobacion_display }}
+            </span>
+          </td>
+          <td>
+            {% if det.calificacion %}
+              <a href="{% url 'calificaciones:calificacion_historial' det.calificacion.id %}" class="btn btn-sm btn-secondary p-1 px-2" title="Ver Historial de Cambios">
+                Logs
+              </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted p-4">No hay estudiantes inscritos en esta sección.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
+    <div class="text-secondary small">
+      <strong>Regla de cálculo:</strong> Promedio aritmético exacto de las 3 evaluaciones con redondeo simétrico a 2 decimales (`ROUND_HALF_UP`).
+    </div>
+    <button type="submit" class="btn btn-primary px-4">
+      Guardar y Calcular Promedios
+    </button>
+  </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const inputs = document.querySelectorAll('.grade-input');
+  
+  function recalcularFila(e) {
+    const target = e.target;
+    const row = target.closest('tr');
+    const rowId = row.getAttribute('data-row-id');
+    
+    const n1 = parseFloat(document.getElementById(`n1_${rowId}`).value);
+    const n2 = parseFloat(document.getElementById(`n2_${rowId}`).value);
+    const n3 = parseFloat(document.getElementById(`n3_${rowId}`).value);
+    const pfElem = document.getElementById(`pf_${rowId}`);
+    const statusElem = document.getElementById(`status_${rowId}`);
+
+    if (!isNaN(n1) && !isNaN(n2) && !isNaN(n3)) {
+      const prom = Math.round(((n1 + n2 + n3) / 3) * 100) / 100;
+      const promStr = prom.toFixed(2);
+      if (prom >= 13.00) {
+        pfElem.innerHTML = `<span class="text-success">${promStr}</span>`;
+        statusElem.innerHTML = `<span class="status-badge badge-aprobado">Aprobado</span>`;
+      } else {
+        pfElem.innerHTML = `<span class="text-danger">${promStr}</span>`;
+        statusElem.innerHTML = `<span class="status-badge badge-desaprobado">Desaprobado</span>`;
+      }
+    } else {
+      pfElem.innerHTML = `<span class="text-muted small">Pendiente</span>`;
+      statusElem.innerHTML = `<span class="status-badge badge-pendiente">Pendiente</span>`;
+    }
+  }
+
+  inputs.forEach(input => {
+    input.addEventListener('input', recalcularFila);
+  });
+});
+</script>
+{% endblock %}

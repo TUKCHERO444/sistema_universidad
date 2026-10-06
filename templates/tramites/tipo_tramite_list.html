@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Tipos de Trámite{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Tipos de Trámite</h1>
+    <p class="page-subtitle">Gestión de tipos de trámites universitarios.</p>
+  </div>
+  <a href="{% url 'tramites:tipo_tramite_create' %}" class="btn btn-primary">+ Nuevo Tipo</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre..." class="form-control" style="width: 280px;">
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query %}
+        <a href="{% url 'tramites:tipo_tramite_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Costo</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tipos %}
+        <tr>
+          <td class="fw-semibold">{{ t.nombre }}</td>
+          <td>{{ t.descripcion|default:"-"|truncatechars:80 }}</td>
+          <td class="font-mono-tabular">S/ {{ t.costo }}</td>
+          <td>
+            <span class="badge {% if t.estado %}bg-success{% else %}bg-secondary{% endif %}">
+              {% if t.estado %}Activo{% else %}Inactivo{% endif %}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'tramites:tipo_tramite_update' t.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted p-4">No se registran tipos de trámite.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Solicitudes de Trámite{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Solicitudes de Trámite</h1>
+    <p class="page-subtitle">Gestión de solicitudes de trámites.</p>
+  </div>
+  <a href="{% url 'tramites:solicitud_create' %}" class="btn btn-primary">+ Nueva Solicitud</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar..." class="form-control" style="width: 200px;">
+      <select name="estado" class="form-select" style="width: 180px;">
+        <option value="">Todos los estados</option>
+        <option value="PENDIENTE" {% if estado_filtro == "PENDIENTE" %}selected{% endif %}>Pendiente</option>
+        <option value="EN_REVISION" {% if estado_filtro == "EN_REVISION" %}selected{% endif %}>En Revisión</option>
+        <option value="APROBADA" {% if estado_filtro == "APROBADA" %}selected{% endif %}>Aprobada</option>
+        <option value="RECHAZADA" {% if estado_filtro == "RECHAZADA" %}selected{% endif %}>Rechazada</option>
+        <option value="CANCELADA" {% if estado_filtro == "CANCELADA" %}selected{% endif %}>Cancelada</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query or estado_filtro %}
+        <a href="{% url 'tramites:solicitud_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Estudiante</th>
+          <th>Tipo de Trámite</th>
+          <th>Fecha Solicitud</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in solicitudes %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">#{{ s.id }}</td>
+          <td>
+            <div class="fw-semibold">{{ s.estudiante.nombre_completo }}</div>
+            <div class="text-muted small">{{ s.estudiante.codigo }}</div>
+          </td>
+          <td>{{ s.tipo_tramite.nombre }}</td>
+          <td class="font-mono-tabular">{{ s.fecha_solicitud }}</td>
+          <td>
+            <span class="badge {% if s.estado == 'APROBADA' %}bg-success{% elif s.estado == 'RECHAZADA' %}bg-danger{% elif s.estado == 'EN_REVISION' %}bg-warning{% else %}bg-secondary{% endif %}">
+              {{ s.get_estado_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'tramites:solicitud_detail' s.pk %}" class="btn btn-sm btn-info">Ver</a>
+            <a href="{% url 'tramites:solicitud_update' s.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran solicitudes.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

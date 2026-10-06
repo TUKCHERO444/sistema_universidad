@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Procesos de Admisión{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Procesos de Admisión</h1>
+    <p class="page-subtitle">Gestión de procesos de admisión universitaria.</p>
+  </div>
+  <a href="{% url 'admision:proceso_create' %}" class="btn btn-primary">+ Nuevo Proceso</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre o año..." class="form-control" style="width: 280px;">
+      <select name="estado" class="form-select" style="width: 180px;">
+        <option value="">Todos los estados</option>
+        <option value="PLANIFICADO" {% if estado_filtro == "PLANIFICADO" %}selected{% endif %}>Planificado</option>
+        <option value="ABIERTO" {% if estado_filtro == "ABIERTO" %}selected{% endif %}>Abierto</option>
+        <option value="CERRADO" {% if estado_filtro == "CERRADO" %}selected{% endif %}>Cerrado</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query or estado_filtro %}
+        <a href="{% url 'admision:proceso_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Año</th>
+          <th>Periodo</th>
+          <th>Fecha Inicio</th>
+          <th>Fecha Fin</th>
+          <th>Estado</th>
+          <th>Postulaciones</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in procesos %}
+        <tr>
+          <td class="fw-semibold">{{ p.nombre }}</td>
+          <td class="font-mono-tabular">{{ p.year }}</td>
+          <td>{{ p.periodo|default:"-" }}</td>
+          <td class="font-mono-tabular">{{ p.fecha_inicio }}</td>
+          <td class="font-mono-tabular">{{ p.fecha_fin }}</td>
+          <td>
+            <span class="badge {% if p.estado == 'ABIERTO' %}bg-success{% elif p.estado == 'CERRADO' %}bg-secondary{% else %}bg-warning{% endif %}">
+              {{ p.get_estado_display }}
+            </span>
+          </td>
+          <td class="font-mono-tabular text-center">{{ p.total_postulaciones }}</td>
+          <td>
+            <a href="{% url 'admision:proceso_update' p.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted p-4">No se registran procesos de admisión.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

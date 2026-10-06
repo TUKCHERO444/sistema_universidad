@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ titulo }}</h1>
+  </div>
+  <a href="{% url 'infraestructura:horario_list' %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      {% csrf_token %}
+      <div class="col-md-6">
+        <label class="form-label">Sección</label>
+        {{ form.seccion }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Aula</label>
+        {{ form.aula }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Día de la Semana</label>
+        {{ form.dia_semana }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Hora Inicio</label>
+        {{ form.hora_inicio }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Hora Fin</label>
+        {{ form.hora_fin }}
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'infraestructura:horario_list' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

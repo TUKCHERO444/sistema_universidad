@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro de Matrículas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Gestión de Matrículas</h1>
+    <p class="page-subtitle">Inscripción formal de estudiantes, control de cupos y anulación de matrículas.</p>
+  </div>
+  <a href="{% url 'matriculas:matricula_create' %}" class="btn btn-primary">+ Nueva Matrícula</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por código o estudiante..." class="form-control" style="width: 260px;">
+      <select name="periodo" class="form-select" style="width: 180px;">
+        <option value="">Todos los Periodos</option>
+        {% for p in periodos %}
+          <option value="{{ p.id }}" {% if periodo_filtro == p.id|stringformat:"i" %}selected{% endif %}>{{ p.codigo }}</option>
+        {% endfor %}
+      </select>
+      <select name="estado" class="form-select" style="width: 160px;">
+        <option value="">Todos los Estados</option>
+        <option value="REGISTRADA" {% if estado_filtro == 'REGISTRADA' %}selected{% endif %}>Registrada</option>
+        <option value="ANULADA" {% if estado_filtro == 'ANULADA' %}selected{% endif %}>Anulada</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      {% if query or periodo_filtro or estado_filtro %}
+        <a href="{% url 'matriculas:matricula_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Estudiante</th>
+          <th>Carrera</th>
+          <th>Periodo</th>
+          <th>Total Créditos</th>
+          <th>Fecha Registro</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matriculas %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">{{ m.codigo }}</td>
+          <td>
+            <div class="fw-semibold">{{ m.estudiante.nombre_completo }}</div>
+            <div class="text-muted small font-monospace">{{ m.estudiante.codigo }}</div>
+          </td>
+          <td>{{ m.estudiante.carrera.nombre }}</td>
+          <td class="font-mono-tabular">{{ m.periodo.codigo }}</td>
+          <td class="font-mono-tabular text-center fw-bold">{{ m.total_creditos }} cr.</td>
+          <td class="font-mono-tabular small">{{ m.fecha_registro|date:"d/m/Y H:i" }}</td>
+          <td>
+            <span class="status-badge {% if m.es_valida %}badge-aprobado{% else %}badge-desaprobado{% endif %}">
+              {{ m.get_estado_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'matriculas:matricula_detail' m.pk %}" class="btn btn-sm btn-secondary">Ver Ficha</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted p-4">No se registran matrículas con los filtros indicados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

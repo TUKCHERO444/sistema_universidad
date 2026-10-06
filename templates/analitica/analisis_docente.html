@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Análisis de mis Secciones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Análisis de Rendimiento de mis Secciones</h1>
+    <p class="page-subtitle">Docente: <strong>{{ docente.nombre_completo }}</strong></p>
+  </div>
+</div>
+
+<div class="table-container p-3 mb-4">
+  <div id="plotDocenteSecciones"></div>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Alertas Basadas en Reglas en mis Cursos</span>
+  </div>
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Curso</th>
+          <th>Categoría</th>
+          <th>Mensaje</th>
+          <th>Acción Sugerida</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in alertas_reglas %}
+        <tr>
+          <td class="fw-semibold">{{ a.estudiante.nombre_completo }}</td>
+          <td>{{ a.curso.codigo }}</td>
+          <td>
+            <span class="badge {% if a.nivel == 'PELIGRO' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+              {{ a.categoria }}
+            </span>
+          </td>
+          <td>{{ a.mensaje }}</td>
+          <td class="small text-muted">{{ a.accion_sugerida }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted p-4">No se registran alertas críticas en sus secciones.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const plotData = {{ grafico_secciones_json|safe|default:'null' }};
+  if(plotData) {
+    Plotly.newPlot('plotDocenteSecciones', plotData.data, plotData.layout, {responsive: true, displayModeBar: false});
+  } else {
+    document.getElementById('plotDocenteSecciones').innerHTML = '<div class="text-muted text-center py-4">Sin datos de rendimiento disponibles</div>';
+  }
+});
+</script>
+{% endblock %}
+{% endblock %}

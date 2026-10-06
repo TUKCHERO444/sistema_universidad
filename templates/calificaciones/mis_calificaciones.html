@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Boleta de Calificaciones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mi Boleta de Calificaciones</h1>
+    <p class="page-subtitle">Estudiante: <strong>{{ estudiante.nombre_completo }}</strong> (<code>{{ estudiante.codigo }}</code>) - {{ estudiante.carrera.nombre }}</p>
+  </div>
+  {% if matricula %}
+    <a href="{% url 'reportes:estudiante_pdf' matricula.id %}" target="_blank" class="btn btn-secondary btn-sm">
+      Descargar Boleta PDF
+    </a>
+  {% endif %}
+</div>
+
+<div class="card p-3 mb-4 bg-white border">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-auto">
+      <label class="col-form-label fw-semibold">Filtrar por Periodo Académico:</label>
+    </div>
+    <div class="col-auto">
+      <select name="periodo" class="form-select" onchange="this.form.submit()">
+        {% for p in periodos %}
+          <option value="{{ p.id }}" {% if matricula and matricula.periodo_id == p.id %}selected{% endif %}>Periodo {{ p.codigo }} ({{ p.nombre }})</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+</div>
+
+{% if matricula %}
+<div class="table-container">
+  <div class="table-toolbar d-flex justify-content-between align-items-center">
+    <div>
+      <span class="fw-bold" style="font-size:14px;color:#1e3a8a;">Matrícula: {{ matricula.codigo }}</span>
+      <span class="badge bg-light text-dark border ms-2">Periodo {{ matricula.periodo.codigo }}</span>
+    </div>
+    <span class="text-secondary small font-monospace">Total Créditos: <strong>{{ matricula.total_creditos }}</strong></span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Asignatura</th>
+          <th>Créditos</th>
+          <th>Docente</th>
+          <th>Nota 1</th>
+          <th>Nota 2</th>
+          <th>Nota 3</th>
+          <th>Promedio Final</th>
+          <th>Resultado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for det in detalles %}
+        <tr>
+          <td class="font-mono-tabular fw-semibold">{{ det.seccion.curso.codigo }}</td>
+          <td>{{ det.seccion.curso.nombre }}</td>
+          <td class="font-mono-tabular text-center">{{ det.seccion.curso.creditos }}</td>
+          <td>{{ det.seccion.docente.nombre_completo }}</td>
+          <td class="font-mono-tabular text-center">{{ det.calificacion.nota1|default:"-" }}</td>
+          <td class="font-mono-tabular text-center">{{ det.calificacion.nota2|default:"-" }}</td>
+          <td class="font-mono-tabular text-center">{{ det.calificacion.nota3|default:"-" }}</td>
+          <td class="font-mono-tabular text-center fw-bold">
+            {% if det.calificacion.promedio_final is not None %}
+              <span class="{% if det.calificacion.promedio_final >= 13 %}text-success{% else %}text-danger{% endif %}">
+                {{ det.calificacion.promedio_final }}
+              </span>
+            {% else %}
+              <span class="text-muted small">Pendiente</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="status-badge {% if det.calificacion.estado_aprobacion == 'APROBADO' %}badge-aprobado{% elif det.calificacion.estado_aprobacion == 'DESAPROBADO' %}badge-desaprobado{% else %}badge-pendiente{% endif %}">
+              {{ det.calificacion.get_estado_aprobacion_display }}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted p-4">No se registran asignaturas inscritas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card p-5 text-center bg-white border">
+  <div class="text-muted">No se encontraron matrículas para el periodo seleccionado.</div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Planes de Estudio{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Planes de Estudio</h1>
+    <p class="page-subtitle">Gestión de planes de estudio por carrera.</p>
+  </div>
+  <a href="{% url 'academico:plan_estudio_create' %}" class="btn btn-primary">+ Nuevo Plan</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre o código..." class="form-control" style="width: 250px;">
+      <select name="carrera" class="form-select" style="width: 200px;">
+        <option value="">Todas las carreras</option>
+        {% for c in carreras %}
+        <option value="{{ c.id }}" {% if carrera_filtro == c.id|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
+        {% endfor %}
+      </select>
+      <select name="estado" class="form-select" style="width: 150px;">
+        <option value="">Todos</option>
+        <option value="VIGENTE" {% if estado_filtro == "VIGENTE" %}selected{% endif %}>Vigente</option>
+        <option value="NO_VIGENTE" {% if estado_filtro == "NO_VIGENTE" %}selected{% endif %}>No Vigente</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query or carrera_filtro or estado_filtro %}
+        <a href="{% url 'academico:plan_estudio_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Carrera</th>
+          <th>Año Inicio</th>
+          <th>Total Créditos</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in planes %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">{{ p.codigo }}</td>
+          <td class="fw-semibold">{{ p.nombre }}</td>
+          <td>{{ p.carrera.nombre }}</td>
+          <td class="font-mono-tabular">{{ p.year_inicio }}</td>
+          <td class="font-mono-tabular text-center">{{ p.total_creditos|default:"-" }}</td>
+          <td>
+            <span class="badge {% if p.estado == 'VIGENTE' %}bg-success{% else %}bg-secondary{% endif %}">
+              {{ p.get_estado_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'academico:plan_estudio_update' p.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No se registran planes de estudio.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

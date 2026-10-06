@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Toma de Asistencia - {{ sesion.fecha|date:"d/m/Y" }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Registro de Asistencia: {{ seccion.curso.nombre }}</h1>
+    <p class="page-subtitle">
+      Sesión: <strong>{{ sesion.fecha|date:"d/m/Y" }}</strong> ({{ sesion.hora_inicio|time:"H:i" }} - {{ sesion.hora_fin|time:"H:i" }}) | 
+      Sección: <strong>{{ seccion.codigo_seccion }}</strong> | 
+      Estado: <span class="badge {% if sesion.cerrada %}bg-success{% else %}bg-warning text-dark{% endif %}">{% if sesion.cerrada %}Sesión Cerrada{% else %}Abierta / En Registro{% endif %}</span>
+    </p>
+  </div>
+  <a href="{% url 'asistencia:sesion_registro_seccion' seccion.id %}" class="btn btn-secondary">Volver a Sesiones</a>
+</div>
+
+<form method="post" class="table-container">
+  {% csrf_token %}
+  <div class="table-toolbar d-flex justify-content-between align-items-center">
+    <div>
+      <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Padrón de Estudiantes de la Sección</span>
+      <span class="text-muted small ms-2">(Total inscritos: {{ filas|length }})</span>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-sm btn-secondary" onclick="marcarTodos('PRESENTE')">Marcar Todos Presentes</button>
+      <button type="submit" class="btn btn-sm btn-primary">Guardar Asistencias</button>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>N°</th>
+          <th>Código</th>
+          <th>Estudiante</th>
+          <th>Estado de Asistencia</th>
+          <th>Observación / Justificación</th>
+          <th>% Asistencia Acumulada</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in filas %}
+        <tr>
+          <td class="text-center font-mono-tabular">{{ forloop.counter }}</td>
+          <td class="font-mono-tabular fw-semibold">{{ f.estudiante.codigo }}</td>
+          <td>
+            <div class="fw-semibold">{{ f.estudiante.nombre_completo }}</div>
+          </td>
+          <td>
+            <div class="btn-group" role="group" aria-label="Estado de Asistencia">
+              <input type="radio" class="btn-check state-radio" name="estado_{{ f.detalle.id }}" id="p_{{ f.detalle.id }}" value="PRESENTE" {% if f.estado_actual == 'PRESENTE' %}checked{% endif %}>
+              <label class="btn btn-outline-success btn-sm" for="p_{{ f.detalle.id }}" title="Presente">P</label>
+
+              <input type="radio" class="btn-check state-radio" name="estado_{{ f.detalle.id }}" id="t_{{ f.detalle.id }}" value="TARDANZA" {% if f.estado_actual == 'TARDANZA' %}checked{% endif %}>
+              <label class="btn btn-outline-warning btn-sm" for="t_{{ f.detalle.id }}" title="Tardanza">T</label>
+
+              <input type="radio" class="btn-check state-radio" name="estado_{{ f.detalle.id }}" id="f_{{ f.detalle.id }}" value="FALTA" {% if f.estado_actual == 'FALTA' %}checked{% endif %}>
+              <label class="btn btn-outline-danger btn-sm" for="f_{{ f.detalle.id }}" title="Falta">F</label>
+
+              <input type="radio" class="btn-check state-radio" name="estado_{{ f.detalle.id }}" id="j_{{ f.detalle.id }}" value="JUSTIFICADA" {% if f.estado_actual == 'JUSTIFICADA' %}checked{% endif %}>
+              <label class="btn btn-outline-info btn-sm" for="j_{{ f.detalle.id }}" title="Justificada (Excluida del Denominador)">J</label>
+            </div>
+          </td>
+          <td>
+            <input type="text" name="obs_{{ f.detalle.id }}" value="{{ f.observacion }}" class="form-control form-control-sm" placeholder="Opcional..." style="max-width: 250px;">
+          </td>
+          <td class="font-mono-tabular">
+            {% if f.resumen_acumulado.porcentaje is not None %}
+              <span class="{% if f.resumen_acumulado.porcentaje < 70 %}text-danger fw-bold{% elif f.resumen_acumulado.porcentaje < 85 %}text-warning fw-semibold{% else %}text-success{% endif %}">
+                {{ f.resumen_acumulado.porcentaje }}%
+              </span>
+              <span class="text-muted small">({{ f.resumen_acumulado.faltas }} faltas)</span>
+            {% else %}
+              <span class="text-muted small">Sin datos previos</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No hay estudiantes inscritos en esta sección.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
+    <div class="text-secondary small">
+      <strong>Criterios:</strong> P = Presente | T = Tardanza (cuenta asistencia) | F = Falta | J = Justificada (excluida del cálculo).
+    </div>
+    <button type="submit" class="btn btn-primary px-4">
+      Guardar y Validar Asistencia
+    </button>
+  </div>
+</form>
+
+<script>
+function marcarTodos(estado) {
+  const inputs = document.querySelectorAll(`input[type="radio"][value="${estado}"]`);
+  inputs.forEach(input => {
+    input.checked = true;
+  });
+}
+</script>
+{% endblock %}

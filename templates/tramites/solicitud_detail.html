@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Solicitud #{{ solicitud.id }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Solicitud #{{ solicitud.id }}</h1>
+    <p class="page-subtitle">Detalle de solicitud de trámite.</p>
+  </div>
+  <a href="{% url 'tramites:solicitud_list' %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Información de la Solicitud</h5>
+      </div>
+      <div class="card-body">
+        <table class="table table-borderless">
+          <tr>
+            <td class="fw-bold">Estudiante:</td>
+            <td>{{ solicitud.estudiante.nombre_completo }}</td>
+          </tr>
+          <tr>
+            <td class="fw-bold">Tipo de Trámite:</td>
+            <td>{{ solicitud.tipo_tramite.nombre }}</td>
+          </tr>
+          <tr>
+            <td class="fw-bold">Fecha de Solicitud:</td>
+            <td>{{ solicitud.fecha_solicitud }}</td>
+          </tr>
+          <tr>
+            <td class="fw-bold">Estado:</td>
+            <td>
+              <span class="badge {% if solicitud.estado == 'APROBADA' %}bg-success{% elif solicitud.estado == 'RECHAZADA' %}bg-danger{% elif solicitud.estado == 'EN_REVISION' %}bg-warning{% else %}bg-secondary{% endif %}">
+                {{ solicitud.get_estado_display }}
+              </span>
+            </td>
+          </tr>
+          {% if solicitud.motivo %}
+          <tr>
+            <td class="fw-bold">Motivo:</td>
+            <td>{{ solicitud.motivo }}</td>
+          </tr>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Seguimiento</h5>
+      </div>
+      <div class="card-body">
+        {% if seguimientos %}
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Observación</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in seguimientos %}
+            <tr>
+              <td class="font-mono-tabular">{{ s.fecha }}</td>
+              <td>{{ s.estado }}</td>
+              <td>{{ s.observacion|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">No se registran seguimientos.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

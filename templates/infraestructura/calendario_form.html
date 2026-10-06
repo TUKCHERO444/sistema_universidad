@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ titulo }}</h1>
+  </div>
+  <a href="{% url 'infraestructura:calendario_list' %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      {% csrf_token %}
+      <div class="col-md-6">
+        <label class="form-label">Periodo Académico</label>
+        {{ form.periodo }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Nombre del Evento</label>
+        {{ form.nombre }}
+      </div>
+      <div class="col-12">
+        <label class="form-label">Descripción</label>
+        {{ form.descripcion }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Inicio</label>
+        {{ form.fecha_inicio }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Fin</label>
+        {{ form.fecha_fin }}
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'infraestructura:calendario_list' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

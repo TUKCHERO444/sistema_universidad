@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Postulación #{{ postulacion.id }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Postulación #{{ postulacion.id }}</h1>
+    <p class="page-subtitle">Detalle de postulación a proceso de admisión.</p>
+  </div>
+  <a href="{% url 'admision:postulacion_list' %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Información de la Postulación</h5>
+      </div>
+      <div class="card-body">
+        <table class="table table-borderless">
+          <tr>
+            <td class="fw-bold">Proceso:</td>
+            <td>{{ postulacion.proceso.nombre }}</td>
+          </tr>
+          <tr>
+            <td class="fw-bold">Carrera:</td>
+            <td>{{ postulacion.carrera.nombre }}</td>
+          </tr>
+          <tr>
+            <td class="fw-bold">Modalidad:</td>
+            <td>{{ postulacion.modalidad.nombre }}</td>
+          </tr>
+          <tr>
+            <td class="fw-bold">Fecha de Postulación:</td>
+            <td>{{ postulacion.fecha_postulacion }}</td>
+          </tr>
+          <tr>
+            <td class="fw-bold">Estado:</td>
+            <td>
+              <span class="badge {% if postulacion.estado == 'ADMITIDA' %}bg-success{% elif postulacion.estado == 'NO_ADMITIDA' %}bg-danger{% elif postulacion.estado == 'EN_EVALUACION' %}bg-warning{% else %}bg-secondary{% endif %}">
+                {{ postulacion.get_estado_display }}
+              </span>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Evaluaciones</h5>
+      </div>
+      <div class="card-body">
+        {% if evaluaciones %}
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Evaluación</th>
+              <th>Puntaje</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in evaluaciones %}
+            <tr>
+              <td>{{ e.nombre }}</td>
+              <td class="font-mono-tabular">{{ e.puntaje|default:"-" }}/{{ e.puntaje_maximo|default:"-" }}</td>
+              <td class="font-mono-tabular">{{ e.fecha|default:"-" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted">No se registran evaluaciones.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

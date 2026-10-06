@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ titulo }}</h1>
+  </div>
+  <a href="{% url 'egresados:titulacion_list' %}" class="btn btn-secondary">← Volver</a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" class="row g-3">
+      {% csrf_token %}
+      <div class="col-md-6">
+        <label class="form-label">Egreso</label>
+        {{ form.egreso }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Estado</label>
+        {{ form.estado }}
+      </div>
+      <div class="col-md-12">
+        <label class="form-label">Título</label>
+        {{ form.titulo }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Modalidad de Titulación</label>
+        {{ form.modalidad }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Número de Registro</label>
+        {{ form.numero_registro }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Sustentación</label>
+        {{ form.fecha_sustentacion }}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Fecha de Otorgamiento</label>
+        {{ form.fecha_otorgamiento }}
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'egresados:titulacion_list' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

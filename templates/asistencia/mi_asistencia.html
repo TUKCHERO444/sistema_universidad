@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Registro de Asistencia{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mi Control de Asistencia</h1>
+    <p class="page-subtitle">Periodo Académico: {{ periodo_actual.codigo|default:"Actual" }} - Estudiante: <strong>{{ estudiante.nombre_completo }}</strong></p>
+  </div>
+</div>
+
+{% for item in inscripciones %}
+<div class="table-container mb-4">
+  <div class="table-toolbar d-flex justify-content-between align-items-center">
+    <div>
+      <span class="fw-bold" style="font-size:14px;color:#1e3a8a;">{{ item.seccion.curso.codigo }} - {{ item.seccion.curso.nombre }}</span>
+      <span class="badge bg-light text-dark border ms-2">Sec {{ item.seccion.codigo_seccion }}</span>
+    </div>
+    <div class="d-flex gap-3 align-items-center">
+      <span class="text-secondary small">Docente: {{ item.seccion.docente.nombre_completo }}</span>
+      <div class="p-1 px-3 rounded border {% if item.resumen.porcentaje < 70 %}bg-danger text-white{% elif item.resumen.porcentaje < 85 %}bg-warning text-dark{% else %}bg-success text-white{% endif %} font-monospace fw-bold" style="font-size:13px;">
+        Asistencia: {{ item.resumen.porcentaje_str }}
+      </div>
+    </div>
+  </div>
+
+  <div class="p-3 bg-light border-bottom">
+    <div class="row text-center">
+      <div class="col-3">
+        <div class="text-muted small">Sesiones Realizadas</div>
+        <div class="fw-bold font-monospace">{{ item.resumen.total_sesiones }}</div>
+      </div>
+      <div class="col-3">
+        <div class="text-success small">Presentes / Tardanzas</div>
+        <div class="fw-bold font-monospace text-success">{{ item.resumen.presentes }} / {{ item.resumen.tardanzas }}</div>
+      </div>
+      <div class="col-3">
+        <div class="text-danger small">Inasistencias (Faltas)</div>
+        <div class="fw-bold font-monospace text-danger">{{ item.resumen.faltas }}</div>
+      </div>
+      <div class="col-3">
+        <div class="text-info small">Justificadas</div>
+        <div class="fw-bold font-monospace text-info">{{ item.resumen.justificadas }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Horario</th>
+          <th>Tema de la Clase</th>
+          <th>Estado</th>
+          <th>Observación</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in item.sesiones %}
+        <tr>
+          <td class="font-mono-tabular">{{ a.sesion.fecha|date:"d/m/Y" }}</td>
+          <td class="font-mono-tabular small">{{ a.sesion.hora_inicio|time:"H:i" }} - {{ a.sesion.hora_fin|time:"H:i" }}</td>
+          <td>{{ a.sesion.tema|default:"-" }}</td>
+          <td>
+            <span class="badge {% if a.estado == 'PRESENTE' %}bg-success{% elif a.estado == 'TARDANZA' %}bg-warning text-dark{% elif a.estado == 'FALTA' %}bg-danger{% else %}bg-info text-dark{% endif %}">
+              {{ a.get_estado_display }}
+            </span>
+          </td>
+          <td class="text-muted small">{{ a.observacion|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted p-3">No se registran sesiones de clase cerradas aún.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% empty %}
+<div class="card p-5 text-center bg-white border">
+  <div class="text-muted">No cuenta con asignaturas matriculadas en el periodo actual.</div>
+</div>
+{% endfor %}
+{% endblock %}

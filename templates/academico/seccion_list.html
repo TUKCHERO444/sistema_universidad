@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Secciones Académicas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Programación de Secciones</h1>
+    <p class="page-subtitle">Apertura de grupos, asignación docente y fecha de corte predictivo.</p>
+  </div>
+  <a href="{% url 'academico:seccion_create' %}" class="btn btn-primary">+ Nueva Sección</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <select name="periodo" class="form-select" style="width: 200px;">
+        <option value="">Todos los Periodos</option>
+        {% for p in periodos %}
+          <option value="{{ p.id }}" {% if periodo_filtro == p.id|stringformat:"i" %}selected{% endif %}>Periodo {{ p.codigo }}</option>
+        {% endfor %}
+      </select>
+      <select name="curso" class="form-select" style="width: 250px;">
+        <option value="">Todos los Cursos</option>
+        {% for c in cursos %}
+          <option value="{{ c.id }}" {% if curso_filtro == c.id|stringformat:"i" %}selected{% endif %}>{{ c.codigo }} - {{ c.nombre }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      {% if periodo_filtro or curso_filtro %}
+        <a href="{% url 'academico:seccion_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Periodo</th>
+          <th>Curso</th>
+          <th>Sección</th>
+          <th>Docente</th>
+          <th>Inscritos / Capacidad</th>
+          <th>Corte Predictivo</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in secciones %}
+        <tr>
+          <td class="font-mono-tabular fw-semibold">{{ s.periodo.codigo }}</td>
+          <td>
+            <div class="fw-semibold">{{ s.curso.nombre }}</div>
+            <div class="text-muted small font-monospace">{{ s.curso.codigo }} - {{ s.curso.carrera.nombre }}</div>
+          </td>
+          <td><span class="badge bg-light text-dark border">Sec {{ s.codigo_seccion }}</span></td>
+          <td>{{ s.docente.nombre_completo }}</td>
+          <td class="font-mono-tabular">
+            <strong>{{ s.vacantes_ocupadas }}</strong> / {{ s.capacidad_maxima }}
+            <span class="text-muted small">({{ s.vacantes_disponibles }} libres)</span>
+          </td>
+          <td class="font-mono-tabular small">{{ s.fecha_corte_predictivo|date:"d/m/Y" }}</td>
+          <td>
+            <span class="badge {% if s.activo %}bg-success{% else %}bg-secondary{% endif %}">
+              {% if s.activo %}Activa{% else %}Inactiva{% endif %}
+            </span>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No se registran secciones con los filtros indicados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

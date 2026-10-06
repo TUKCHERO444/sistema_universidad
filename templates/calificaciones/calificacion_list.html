@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Padrón de Calificaciones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Padrón de Calificaciones</h1>
+    <p class="page-subtitle">Monitoreo de evaluaciones, promedios aritméticos y estados de aprobación.</p>
+  </div>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por código o estudiante..." class="form-control" style="width: 240px;">
+      <select name="periodo" class="form-select" style="width: 170px;">
+        <option value="">Todos los Periodos</option>
+        {% for p in periodos %}
+          <option value="{{ p.id }}" {% if periodo_filtro == p.id|stringformat:"i" %}selected{% endif %}>{{ p.codigo }}</option>
+        {% endfor %}
+      </select>
+      <select name="seccion" class="form-select" style="width: 260px;">
+        <option value="">Todas las Secciones</option>
+        {% for s in secciones_filtro %}
+          <option value="{{ s.id }}" {% if seccion_filtro == s.id|stringformat:"i" %}selected{% endif %}>{{ s.curso.codigo }} - Sec {{ s.codigo_seccion }} ({{ s.periodo.codigo }})</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      {% if query or periodo_filtro or seccion_filtro %}
+        <a href="{% url 'calificaciones:calificacion_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Asignatura</th>
+          <th>Sección</th>
+          <th>Docente</th>
+          <th>Eval 1</th>
+          <th>Eval 2</th>
+          <th>Eval 3</th>
+          <th>Promedio Final</th>
+          <th>Resultado</th>
+          <th>Historial</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in calificaciones %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ c.detalle_matricula.matricula.estudiante.nombre_completo }}</div>
+            <div class="text-muted small font-monospace">{{ c.detalle_matricula.matricula.estudiante.codigo }}</div>
+          </td>
+          <td>{{ c.detalle_matricula.seccion.curso.nombre }}</td>
+          <td><span class="badge bg-light text-dark border">Sec {{ c.detalle_matricula.seccion.codigo_seccion }}</span></td>
+          <td>{{ c.detalle_matricula.seccion.docente.nombre_completo }}</td>
+          <td class="font-mono-tabular text-center">{{ c.nota1|default:"-" }}</td>
+          <td class="font-mono-tabular text-center">{{ c.nota2|default:"-" }}</td>
+          <td class="font-mono-tabular text-center">{{ c.nota3|default:"-" }}</td>
+          <td class="font-mono-tabular text-center fw-bold">
+            {% if c.promedio_final is not None %}
+              <span class="{% if c.promedio_final >= 13 %}text-success{% else %}text-danger{% endif %}">
+                {{ c.promedio_final }}
+              </span>
+            {% else %}
+              <span class="text-muted small">Pendiente</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="status-badge {% if c.estado_aprobacion == 'APROBADO' %}badge-aprobado{% elif c.estado_aprobacion == 'DESAPROBADO' %}badge-desaprobado{% else %}badge-pendiente{% endif %}">
+              {{ c.get_estado_aprobacion_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'calificaciones:calificacion_historial' c.id %}" class="btn btn-sm btn-secondary" title="Auditoría de Cambios">
+              Trazabilidad
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" class="text-center text-muted p-4">No se registran calificaciones con los filtros seleccionados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

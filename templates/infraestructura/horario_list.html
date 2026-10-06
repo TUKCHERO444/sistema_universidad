@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Horarios{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Horarios de Clase</h1>
+    <p class="page-subtitle">Gestión de horarios por sección.</p>
+  </div>
+  <a href="{% url 'infraestructura:horario_create' %}" class="btn btn-primary">+ Nuevo Horario</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <select name="dia" class="form-select" style="width: 180px;">
+        <option value="">Todos los días</option>
+        <option value="LUNES" {% if dia_filtro == "LUNES" %}selected{% endif %}>Lunes</option>
+        <option value="MARTES" {% if dia_filtro == "MARTES" %}selected{% endif %}>Martes</option>
+        <option value="MIERCOLES" {% if dia_filtro == "MIERCOLES" %}selected{% endif %}>Miércoles</option>
+        <option value="JUEVES" {% if dia_filtro == "JUEVES" %}selected{% endif %}>Jueves</option>
+        <option value="VIERNES" {% if dia_filtro == "VIERNES" %}selected{% endif %}>Viernes</option>
+        <option value="SABADO" {% if dia_filtro == "SABADO" %}selected{% endif %}>Sábado</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      {% if dia_filtro %}
+        <a href="{% url 'infraestructura:horario_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Sección</th>
+          <th>Curso</th>
+          <th>Día</th>
+          <th>Hora Inicio</th>
+          <th>Hora Fin</th>
+          <th>Aula</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for h in horarios %}
+        <tr>
+          <td>{{ h.seccion.codigo_seccion }}</td>
+          <td>{{ h.seccion.curso.nombre }}</td>
+          <td>
+            <span class="badge bg-primary">{{ h.get_dia_semana_display }}</span>
+          </td>
+          <td class="font-mono-tabular">{{ h.hora_inicio }}</td>
+          <td class="font-mono-tabular">{{ h.hora_fin }}</td>
+          <td>{{ h.aula.codigo|default:"-" }}</td>
+          <td>
+            <a href="{% url 'infraestructura:horario_update' h.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No se registran horarios.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Roles{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Roles del Sistema</h1>
+    <p class="page-subtitle">Gestión de roles de usuario.</p>
+  </div>
+  <a href="{% url 'seguridad:rol_create' %}" class="btn btn-primary">+ Nuevo Rol</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por nombre..." class="form-control" style="width: 280px;">
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query %}
+        <a href="{% url 'seguridad:rol_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Permisos Asignados</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in roles %}
+        <tr>
+          <td class="fw-semibold">{{ r.nombre }}</td>
+          <td>{{ r.descripcion|default:"-" }}</td>
+          <td class="font-mono-tabular text-center">{{ r.total_permisos }}</td>
+          <td>
+            <a href="{% url 'seguridad:rol_update' r.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-muted p-4">No se registran roles.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

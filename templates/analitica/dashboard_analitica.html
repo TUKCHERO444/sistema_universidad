@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Análisis Académico Institucional{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Análisis de Datos Académicos</h1>
+    <p class="page-subtitle">Visualización analítica basada en Pandas y Plotly. Distinción explícita entre estadísticas descriptivas, reglas y Machine Learning.</p>
+  </div>
+</div>
+
+<!-- Filtros de Período y Carrera -->
+<div class="card p-3 mb-4 bg-white border">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-md-4">
+      <label class="form-label small mb-1">Periodo Académico</label>
+      <select name="periodo" class="form-select form-select-sm" onchange="this.form.submit()">
+        {% for p in periodos %}
+          <option value="{{ p.id }}" {% if periodo_filtro == p.id %}selected{% endif %}>Periodo {{ p.codigo }} ({{ p.nombre }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small mb-1">Curso / Asignatura</label>
+      <select name="curso" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">Todos los Cursos</option>
+        {% for c in cursos %}
+          <option value="{{ c.id }}" {% if curso_filtro == c.id|stringformat:"i" %}selected{% endif %}>{{ c.codigo }} - {{ c.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+</div>
+
+<!-- Gráficos Interactivos Plotly -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-6">
+    <div class="table-container p-3">
+      <div id="plotCarreras"></div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="table-container p-3">
+      <div id="plotNotas"></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-12">
+    <div class="table-container p-3">
+      <div id="plotSecciones"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Comparativa: Alertas Basadas en Reglas Deterministas vs Predicciones ML -->
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="table-container h-100">
+      <div class="table-toolbar">
+        <div>
+          <span class="fw-bold" style="font-size:13.5px;color:#0369a1;">1. Alertas Deterministas (Reglas de Negocio)</span>
+          <div class="text-muted" style="font-size:11px;">Criterio exacto: Asistencia &lt; 70% o Nota 1 &lt; 10.50</div>
+        </div>
+      </div>
+      <div class="p-3">
+        {% if alertas_reglas %}
+          <div class="d-flex flex-column gap-2">
+            {% for r in alertas_reglas %}
+            <div class="p-2 px-3 border rounded bg-white" style="border-left: 3px solid {% if r.nivel == 'PELIGRO' %}#dc2626{% else %}#d97706{% endif %} !important;">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-dark" style="font-size:13px;">{{ r.estudiante.nombre_completo }}</span>
+                <span class="badge {% if r.nivel == 'PELIGRO' %}bg-danger{% else %}bg-warning text-dark{% endif %}" style="font-size:10.5px;">{{ r.categoria }}</span>
+              </div>
+              <div class="text-secondary small">{{ r.mensaje }} en {{ r.curso.codigo }}</div>
+              <div class="text-muted small mt-1 font-italic">{{ r.accion_sugerida }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted text-center py-4">No se detectan alertas por reglas en este periodo.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="table-container h-100">
+      <div class="table-toolbar">
+        <div>
+          <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">2. Predicciones Probabilísticas (Machine Learning)</span>
+          <div class="text-muted" style="font-size:11px;">Modelo: {{ modelo_activo.nombre|default:"Ninguno activo" }}</div>
+        </div>
+      </div>
+      <div class="p-3">
+        {% if alertas_ml %}
+          <div class="d-flex flex-column gap-2">
+            {% for p in alertas_ml %}
+            <div class="p-2 px-3 border rounded bg-white" style="border-left: 3px solid {% if p.nivel_riesgo == 'ALTO' %}#dc2626{% else %}#d97706{% endif %} !important;">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-dark" style="font-size:13px;">{{ p.instantanea.detalle_matricula.matricula.estudiante.nombre_completo }}</span>
+                <span class="status-badge {% if p.nivel_riesgo == 'ALTO' %}badge-riesgo-alto{% else %}badge-riesgo-medio{% endif %}" style="font-size:10.5px;">{{ p.get_nivel_riesgo_display }}</span>
+              </div>
+              <div class="d-flex justify-content-between text-secondary small">
+                <span>{{ p.instantanea.detalle_matricula.seccion.curso.codigo }}</span>
+                <span class="font-monospace fw-bold text-danger">Prob. Riesgo: {{ p.probabilidad_riesgo|floatformat:2 }}</span>
+              </div>
+              <div class="text-muted small mt-1">{{ p.orientacion_academica|truncatechars:95 }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted text-center py-4">No hay estimaciones de riesgo generadas para el modelo activo.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const plotCarrerasData = {{ grafico_carreras_json|safe|default:'null' }};
+  if(plotCarrerasData) {
+    Plotly.newPlot('plotCarreras', plotCarrerasData.data, plotCarrerasData.layout, {responsive: true, displayModeBar: false});
+  } else {
+    document.getElementById('plotCarreras').innerHTML = '<div class="text-muted text-center py-4">Sin datos de matrículas</div>';
+  }
+
+  const plotNotasData = {{ grafico_notas_json|safe|default:'null' }};
+  if(plotNotasData) {
+    Plotly.newPlot('plotNotas', plotNotasData.data, plotNotasData.layout, {responsive: true, displayModeBar: false});
+  } else {
+    document.getElementById('plotNotas').innerHTML = '<div class="text-muted text-center py-4">Sin datos de calificaciones finales</div>';
+  }
+
+  const plotSeccionesData = {{ grafico_secciones_json|safe|default:'null' }};
+  if(plotSeccionesData) {
+    Plotly.newPlot('plotSecciones', plotSeccionesData.data, plotSeccionesData.layout, {responsive: true, displayModeBar: false});
+  } else {
+    document.getElementById('plotSecciones').innerHTML = '<div class="text-muted text-center py-4">Sin datos de secciones</div>';
+  }
+});
+</script>
+{% endblock %}
+{% endblock %}

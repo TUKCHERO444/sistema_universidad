@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Conceptos de Pago{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Conceptos de Pago</h1>
+    <p class="page-subtitle">Gestión de conceptos de pago universitario.</p>
+  </div>
+  <a href="{% url 'finanzas:concepto_create' %}" class="btn btn-primary">+ Nuevo Concepto</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por código o nombre..." class="form-control" style="width: 280px;">
+      <button type="submit" class="btn btn-secondary">Buscar</button>
+      {% if query %}
+        <a href="{% url 'finanzas:concepto_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in conceptos %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">{{ c.codigo }}</td>
+          <td class="fw-semibold">{{ c.nombre }}</td>
+          <td>{{ c.descripcion|default:"-"|truncatechars:80 }}</td>
+          <td>
+            <span class="badge {% if c.estado %}bg-success{% else %}bg-secondary{% endif %}">
+              {% if c.estado %}Activo{% else %}Inactivo{% endif %}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'finanzas:concepto_update' c.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted p-4">No se registran conceptos de pago.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Catálogo de Cursos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Catálogo de Asignaturas y Cursos</h1>
+    <p class="page-subtitle">Malla curricular, créditos y asignaturas por carrera.</p>
+  </div>
+  <a href="{% url 'academico:curso_create' %}" class="btn btn-primary">+ Nuevo Curso</a>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <input type="text" name="q" value="{{ query }}" placeholder="Buscar por código o nombre..." class="form-control" style="width: 260px;">
+      <select name="carrera" class="form-select" style="width: 240px;">
+        <option value="">Todas las Carreras</option>
+        {% for c in carreras %}
+          <option value="{{ c.id }}" {% if carrera_filtro == c.id|stringformat:"i" %}selected{% endif %}>{{ c.nombre }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      {% if query or carrera_filtro %}
+        <a href="{% url 'academico:curso_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre de Asignatura</th>
+          <th>Carrera</th>
+          <th>Ciclo</th>
+          <th>Créditos</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in cursos %}
+        <tr>
+          <td class="font-mono-tabular fw-semibold">{{ c.codigo }}</td>
+          <td>{{ c.nombre }}</td>
+          <td><span class="badge bg-light text-dark border">{{ c.carrera.codigo }}</span> {{ c.carrera.nombre }}</td>
+          <td class="font-mono-tabular text-center">Ciclo {{ c.ciclo }}</td>
+          <td class="font-mono-tabular text-center fw-bold">{{ c.creditos }} cr.</td>
+          <td>
+            <span class="badge {% if c.activo %}bg-success{% else %}bg-secondary{% endif %}">
+              {% if c.activo %}Activo{% else %}Inactivo{% endif %}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'academico:curso_update' c.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No se registran asignaturas con los filtros indicados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

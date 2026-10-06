@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Riesgo Académico de mis Secciones{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Predicción de Riesgo en mis Asignaturas</h1>
+    <p class="page-subtitle">Docente: <strong>{{ docente.nombre_completo }}</strong> - Alertas tempranas generadas por el modelo predictivo institucional.</p>
+  </div>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar d-flex justify-content-between align-items-center">
+    <div>
+      <span class="fw-bold" style="font-size:13.5px;color:#1e3a8a;">Listado Confidencial de Estudiantes en Seguimiento</span>
+    </div>
+    {% if modelo_activo %}
+      <span class="text-muted small">Modelo Activo: <strong>{{ modelo_activo.nombre }}</strong> ({{ modelo_activo.version }})</span>
+    {% endif %}
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Curso / Sección</th>
+          <th>Nota 1 (Corte)</th>
+          <th>% Asistencia (Corte)</th>
+          <th>Probabilidad de Desaprobar</th>
+          <th>Nivel de Riesgo</th>
+          <th>Orientación Pedagógica</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in predicciones %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ p.instantanea.detalle_matricula.matricula.estudiante.nombre_completo }}</div>
+            <div class="text-muted small font-monospace">{{ p.instantanea.detalle_matricula.matricula.estudiante.codigo }}</div>
+          </td>
+          <td>
+            <div class="fw-semibold">{{ p.instantanea.detalle_matricula.seccion.curso.nombre }}</div>
+            <span class="badge bg-light text-dark border">Sec {{ p.instantanea.detalle_matricula.seccion.codigo_seccion }}</span>
+          </td>
+          <td class="font-mono-tabular text-center">
+            {% if p.instantanea.nota1 is not None %}
+              <span class="{% if p.instantanea.nota1 < 10.5 %}text-danger fw-bold{% endif %}">{{ p.instantanea.nota1 }}</span>
+            {% else %}
+              <span class="text-muted small">S/N</span>
+            {% endif %}
+          </td>
+          <td class="font-mono-tabular text-center">
+            {% if p.instantanea.porcentaje_asistencia is not None %}
+              {{ p.instantanea.porcentaje_asistencia }}%
+            {% else %}
+              <span class="text-muted small">S/D</span>
+            {% endif %}
+          </td>
+          <td class="font-mono-tabular fw-bold text-center">
+            <span class="{% if p.nivel_riesgo == 'ALTO' %}text-danger{% elif p.nivel_riesgo == 'MEDIO' %}text-warning{% else %}text-success{% endif %}">
+              {{ p.probabilidad_riesgo|floatformat:2 }} ({{ p.probabilidad_riesgo|stringformat:".1%" }})
+            </span>
+          </td>
+          <td>
+            <span class="status-badge {% if p.nivel_riesgo == 'ALTO' %}badge-riesgo-alto{% elif p.nivel_riesgo == 'MEDIO' %}badge-riesgo-medio{% elif p.nivel_riesgo == 'BAJO' %}badge-riesgo-bajo{% else %}badge-riesgo-insuficiente{% endif %}">
+              {{ p.get_nivel_riesgo_display }}
+            </span>
+          </td>
+          <td style="font-size:12.5px;max-width:320px;">
+            {{ p.orientacion_academica }}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No se registran predicciones generadas para sus secciones.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

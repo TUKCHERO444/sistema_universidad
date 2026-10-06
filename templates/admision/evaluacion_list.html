@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Evaluaciones de Admisión{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Evaluaciones de Admisión</h1>
+    <p class="page-subtitle">Gestión de evaluaciones por postulación.</p>
+  </div>
+  <a href="{% url 'admision:evaluacion_create' %}" class="btn btn-primary">+ Nueva Evaluación</a>
+</div>
+
+<div class="table-container">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Postulación</th>
+          <th>Carrera</th>
+          <th>Evaluación</th>
+          <th>Puntaje</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in evaluaciones %}
+        <tr>
+          <td class="font-mono-tabular">#{{ e.postulacion.id }}</td>
+          <td>{{ e.postulacion.carrera.nombre }}</td>
+          <td class="fw-semibold">{{ e.nombre }}</td>
+          <td class="font-mono-tabular">{{ e.puntaje|default:"-" }}/{{ e.puntaje_maximo|default:"-" }}</td>
+          <td class="font-mono-tabular">{{ e.fecha|default:"-" }}</td>
+          <td>
+            <a href="{% url 'admision:evaluacion_update' e.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No se registran evaluaciones.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

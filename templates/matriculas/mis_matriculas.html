@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Matrículas Históricas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Historial de Matrículas</h1>
+    <p class="page-subtitle">Estudiante: <strong>{{ estudiante.nombre_completo }}</strong> ({{ estudiante.codigo }})</p>
+  </div>
+</div>
+
+<div class="table-container">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código de Matrícula</th>
+          <th>Periodo Académico</th>
+          <th>Total Créditos</th>
+          <th>Fecha de Registro</th>
+          <th>Estado</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in matriculas %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">{{ m.codigo }}</td>
+          <td>{{ m.periodo.codigo }} - {{ m.periodo.nombre }}</td>
+          <td class="font-mono-tabular text-center fw-bold">{{ m.total_creditos }} cr.</td>
+          <td class="font-mono-tabular small">{{ m.fecha_registro|date:"d/m/Y H:i" }}</td>
+          <td>
+            <span class="status-badge {% if m.es_valida %}badge-aprobado{% else %}badge-desaprobado{% endif %}">
+              {{ m.get_estado_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'matriculas:matricula_detail' m.pk %}" class="btn btn-sm btn-secondary">Ver Ficha</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted p-4">No cuenta con matrículas registradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Secciones Asignadas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mis Asignaturas y Secciones</h1>
+    <p class="page-subtitle">Docente: <strong>{{ docente.nombre_completo }}</strong> - Periodo: {{ periodo_actual.codigo|default:"Actual" }}</p>
+  </div>
+</div>
+
+<div class="table-container">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre del Curso</th>
+          <th>Carrera</th>
+          <th>Sección</th>
+          <th>Inscritos / Capacidad</th>
+          <th>Corte Predictivo</th>
+          <th>Acciones Rápidas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sec in secciones %}
+        <tr>
+          <td class="font-mono-tabular fw-bold">{{ sec.curso.codigo }}</td>
+          <td>{{ sec.curso.nombre }}</td>
+          <td>{{ sec.curso.carrera.nombre }}</td>
+          <td><span class="badge bg-light text-dark border">Sec {{ sec.codigo_seccion }}</span></td>
+          <td class="font-mono-tabular">
+            {{ sec.vacantes_ocupadas }} / {{ sec.capacidad_maxima }}
+          </td>
+          <td class="font-mono-tabular small">{{ sec.fecha_corte_predictivo|date:"d/m/Y" }}</td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'asistencia:sesion_registro_seccion' sec.id %}" class="btn btn-sm btn-secondary">
+                Asistencia
+              </a>
+              <a href="{% url 'calificaciones:seccion_calificaciones' sec.id %}" class="btn btn-sm btn-primary">
+                Calificaciones
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No tiene secciones asignadas en este periodo.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+# Entorno virtual
+venv/
+.env
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+
+# Archivos de medios y modelos generados
+media/
+ml_models/
+
+# Logs y temporales
+*.log
+.DS_Store
+.idea/
+.vscode/

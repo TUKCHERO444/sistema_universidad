@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Periodos Académicos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Periodos Semestrales</h1>
+    <p class="page-subtitle">Control de aperturas, cierres, intervalos de matrícula y calendario de clases.</p>
+  </div>
+  <a href="{% url 'academico:periodo_create' %}" class="btn btn-primary">+ Nuevo Periodo</a>
+</div>
+
+<div class="table-container">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Intervalo de Matrícula</th>
+          <th>Intervalo de Clases</th>
+          <th>Secciones</th>
+          <th>Estado Académico</th>
+          <th>Periodo Activo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in periodos %}
+        <tr>
+          <td class="font-mono-tabular fw-bold" style="color:#1e3a8a;">{{ p.codigo }}</td>
+          <td>{{ p.nombre }}</td>
+          <td class="font-mono-tabular small">
+            {{ p.matricula_inicio|date:"d/m/Y" }} al {{ p.matricula_fin|date:"d/m/Y" }}
+          </td>
+          <td class="font-mono-tabular small">
+            {{ p.fecha_inicio|date:"d/m/Y" }} al {{ p.fecha_fin|date:"d/m/Y" }}
+          </td>
+          <td class="font-mono-tabular text-center">{{ p.total_secciones }}</td>
+          <td>
+            <span class="status-badge {% if p.estado == 'ABIERTO' %}badge-aprobado{% else %}badge-desaprobado{% endif %}">
+              {{ p.get_estado_display }}
+            </span>
+          </td>
+          <td>
+            {% if p.activo %}
+              <span class="badge bg-primary">Vigente Principal</span>
+            {% else %}
+              <span class="text-muted small">-</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'academico:periodo_update' p.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted p-4">No se registran periodos académicos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

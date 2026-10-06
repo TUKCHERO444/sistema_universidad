@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Control de Asistencia{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Control de Asistencia de Clases</h1>
+    <p class="page-subtitle">Registro de sesiones diarias, cálculo riguroso de asistencia y monitoreo de inasistencias.</p>
+  </div>
+</div>
+
+<div class="table-container">
+  <div class="table-toolbar">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <select name="periodo" class="form-select" style="width: 180px;">
+        <option value="">Todos los Periodos</option>
+        {% for p in periodos %}
+          <option value="{{ p.id }}" {% if periodo_filtro == p.id|stringformat:"i" %}selected{% endif %}>{{ p.codigo }}</option>
+        {% endfor %}
+      </select>
+      <select name="seccion" class="form-select" style="width: 280px;">
+        <option value="">Todas mis Secciones</option>
+        {% for s in secciones_filtro %}
+          <option value="{{ s.id }}" {% if seccion_filtro == s.id|stringformat:"i" %}selected{% endif %}>{{ s.curso.codigo }} - Sec {{ s.codigo_seccion }} ({{ s.periodo.codigo }})</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-secondary">Filtrar</button>
+      {% if periodo_filtro or seccion_filtro %}
+        <a href="{% url 'asistencia:sesion_list' %}" class="btn btn-sm btn-secondary">Limpiar</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Horario</th>
+          <th>Asignatura y Sección</th>
+          <th>Docente</th>
+          <th>Tema Tratado</th>
+          <th>Estado de Sesión</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sesiones %}
+        <tr>
+          <td class="font-mono-tabular fw-bold">{{ s.fecha|date:"d/m/Y" }}</td>
+          <td class="font-mono-tabular small">{{ s.hora_inicio|time:"H:i" }} - {{ s.hora_fin|time:"H:i" }}</td>
+          <td>
+            <div class="fw-semibold">{{ s.seccion.curso.nombre }}</div>
+            <div class="text-muted small font-monospace">{{ s.seccion.curso.codigo }} - Sec {{ s.seccion.codigo_seccion }}</div>
+          </td>
+          <td>{{ s.seccion.docente.nombre_completo }}</td>
+          <td>{{ s.tema|default:"Sin tema registrado"|truncatechars:45 }}</td>
+          <td>
+            <span class="status-badge {% if s.cerrada %}badge-aprobado{% else %}badge-riesgo-medio{% endif %}">
+              {% if s.cerrada %}Cerrada & Validada{% else %}Pendiente de Cierre{% endif %}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'asistencia:sesion_matriz' s.id %}" class="btn btn-sm btn-primary">
+              {% if s.cerrada %}Ver / Editar{% else %}Tomar Asistencia{% endif %}
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted p-4">No se registran sesiones de clase.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

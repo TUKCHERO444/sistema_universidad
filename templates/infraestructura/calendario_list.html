@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendario Académico{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Calendario Académico</h1>
+    <p class="page-subtitle">Eventos y fechas importantes del calendario.</p>
+  </div>
+  <a href="{% url 'infraestructura:calendario_create' %}" class="btn btn-primary">+ Nuevo Evento</a>
+</div>
+
+<div class="table-container">
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Evento</th>
+          <th>Periodo</th>
+          <th>Fecha Inicio</th>
+          <th>Fecha Fin</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in eventos %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ e.nombre }}</div>
+            {% if e.descripcion %}
+              <div class="text-muted small">{{ e.descripcion|truncatechars:80 }}</div>
+            {% endif %}
+          </td>
+          <td>{{ e.periodo.codigo }}</td>
+          <td class="font-mono-tabular">{{ e.fecha_inicio }}</td>
+          <td class="font-mono-tabular">{{ e.fecha_fin|default:"-" }}</td>
+          <td>
+            <a href="{% url 'infraestructura:calendario_update' e.pk %}" class="btn btn-sm btn-secondary">Editar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted p-4">No se registran eventos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
